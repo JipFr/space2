@@ -119,7 +119,7 @@ class Entity {
 	}) {
 		this.ship = ship;
 		this.ship.image = new Image();
-		this.ship.image.src = `/assets/ships/${this.ship.texture}`;
+		this.ship.image.src = `assets/ships/${this.ship.texture}`;
 
 		this.weapons = JSON.parse(JSON.stringify(this.ship.weapons)).map(phaser => new Phaser(phaser)) || [];
 
@@ -273,7 +273,7 @@ class Entity {
 				if(i >= 0 && distance > maxDist) {
 					let dirTo = Math.atan2(goToY - this.y, goToX - this.x);
 					let relativeHeading = (dirTo - (this.rotation % Math.PI));
-					this.rotation = (this.rotation % Math.PI) + relativeHeading / 10;
+					this.rotation += relativeHeading / 10;
 				}
 				if(i >= 100 && distance > maxDist) this.accelarate();
 				if(distance < maxDist * 10 && this.speed > 0) this.deccelarate();
