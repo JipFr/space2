@@ -67,7 +67,7 @@ class Phaser {
 			ctx.stroke();
 
 			let turnDir = Math.floor(Math.random() * 2) === 0 ? "Left" : "Right";
-			closest[`turn${turnDir}`]();
+			if(!closest.ship.noShake) closest[`turn${turnDir}`]();
 			closest.health -= this.dps / 60;
 			this.usage++
 
@@ -88,6 +88,7 @@ interface shipClass {
 	imageScale?: number;
 	trailExits?: [number, number][]; // Where should the trails exit from?
 	weapons?: Phaser[];
+	noShake?: boolean;
 }
 
 interface MovementAction {
@@ -185,6 +186,7 @@ class Entity {
 				}
 				if(pressedKeys["c"] && this.action) {
 					delete this.action;
+					delete this.following;
 				}
  	
 				for (let weapon of (this.weapons || [])) {
@@ -220,7 +222,7 @@ class Entity {
 					this.moveTo(this.following);
 				}
 
-			} else {
+			} else if(this.following !== player) {
 				this.following.followers--
 				delete this.following;
 			}
@@ -330,12 +332,12 @@ class Entity {
 						return a;
 					}
 					let relativeHeading = normalizeAngle(dirTo - this.rotation);
-					this.rotation += relativeHeading / 10;
+					if(this.health > 0) this.rotation += relativeHeading / 10;
 				}
 				if(i >= 100 && distance > maxDist * 10) this.accelarate();
 				if(i >= 100 && distance > maxDist && this.speed < (goTo.speed || 9e9)) this.accelarate();
 				
-				if(distance < maxDist * 4 && this.speed > (goTo.speed || 15)) this.deccelarate();
+				if(distance < maxDist * (player.speed*3) && this.speed > (goTo.speed || 15)) this.deccelarate();
 				if(distance < maxDist && this.speed > (goTo.speed || 0)) this.deccelarate();
 				if(distance < maxDist && this.speed <= 0) delete this.action;
 			},
@@ -561,6 +563,47 @@ const shipClasses = {
 			})
 		]
 	},
+	"god": {
+		className: "God class",
+		faction: "God",
+		maxSpeed: 1e6,
+		accelaration: 1,
+		texture: "god.png",
+		startHealth: 1200,
+		rotSpeed: 60,
+		imageScale: 1,
+		noShake: true,
+		trailExits: [
+			[Math.PI/2, 85],
+			[-Math.PI/2, 85],
+			[0, 100]
+		],
+		weapons: [
+			new Phaser({
+				dps: 900,
+				color: "red",
+				maxDistance: 500,
+				shortcut: "k",
+				maxUsage: 4,
+				weaponCooldownTime: 0,
+				position: [-Math.PI, 30]
+			}),
+			new Phaser({
+				dps: 40,
+				color: "white",
+				maxDistance: 1000,
+				shortcut: " ",
+				position: [-Math.PI+0.2, 48]
+			}),
+			new Phaser({
+				dps: 40,
+				color: "white",
+				maxDistance: 1000,
+				shortcut: " ",
+				position: [-Math.PI-0.2, 48]
+			})
+		]
+	},
 	"explorer": {
 		className: "Explorer",
 		faction: "Starfleet",
@@ -601,7 +644,8 @@ function genShips(): void {
 			defiant: 1,
 			explorer: 1,
 			nerada: 0.1,
-			cube: 0.02
+			cube: 0.02,
+			god: 0.005
 		}
 
 		let shipChancesArr = Object.entries(shipChances);
@@ -626,8 +670,6 @@ function genShips(): void {
 			randomShip = shipClasses["cube"];
 		} else if(borgMode && !init) {
 			randomShip = shipClasses["nerada"]
-		} else if(init) {
-			randomShip = shipClasses["explorer"];
 		}
 
 		entities.push(new Entity({
@@ -758,8 +800,8 @@ class PlayerData {
 			ctx.rotate(player.rotation);
 			ctx.beginPath();
 
-			ctx.moveTo(radarMin, 0);
-			ctx.lineTo(radarMax, 0);
+			ctx.moveTo(playerData.minRadius, 0);
+			ctx.lineTo(playerData.maxRadius, 0);
 
 			ctx.globalAlpha = 1;
 			ctx.strokeStyle = "aqua";

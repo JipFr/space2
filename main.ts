@@ -45,6 +45,14 @@ setInterval(() => {
 	fps = 0;
 }, 1e3);
 
+function findShips(selector: string): (Entity[] | void) {
+	let ships = getShipDistances(player);
+	return ships.filter(ent => 
+		ent.faction.toLowerCase() === selector.toLowerCase() ||
+		ent.ship.className === selector.toLowerCase()	
+	)
+}
+
 function init(): void {
 	canvas.width = canvas.scrollWidth;
 	canvas.height = canvas.scrollHeight;
