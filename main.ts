@@ -4,7 +4,13 @@ function loop(): void {
 	canvas.height = canvas.scrollHeight;
 	draw();
 	for(let entity of entities) {
-		entity.update();
+		// if(entity === player) entity.update();
+		let distX = Math.abs(entity.x - player.x);
+		let distY = Math.abs(entity.y - player.y);
+		let distance = Math.sqrt(distX * distX + distY + distY);
+		if(distance < 10e3 || entity.following || entity.followers > 0 || entity.action) {
+			entity.update();
+		}
 	}
 	for(let waypoint of playerData.waypoints) {
 		waypoint.update();
@@ -12,6 +18,7 @@ function loop(): void {
 	requestAnimationFrame(loop);
 }
 
+let fps = 0;
 function draw(): void {
 	
 	ctx.globalAlpha = 0.5;
@@ -30,8 +37,13 @@ function draw(): void {
 	for(let waypoint of playerData.waypoints) {
 		if(waypoint.target !== player) waypoint.draw();
 	}
+	fps++
 
 }
+
+setInterval(() => {
+	fps = 0;
+}, 1e3);
 
 function init(): void {
 	canvas.width = canvas.scrollWidth;

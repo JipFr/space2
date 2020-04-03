@@ -7,6 +7,8 @@ class Phaser {
 	public position: [number, number];
 	public usage: number;
 	public maxUsage: number;
+	public weaponCooldownTime: number;
+	public weaponCooldown: number;
 	public disabled: boolean;
 
 	constructor({
@@ -15,7 +17,8 @@ class Phaser {
 		maxDistance,
 		shortcut,
 		position,
-		maxUsage = 30
+		maxUsage = 30,
+		weaponCooldownTime = 31
 	}) {
 		this.color = color;
 		this.dps = dps;
@@ -25,6 +28,7 @@ class Phaser {
 		this.usage = 0;
 		this.disabled = false;
 		this.maxUsage = maxUsage;
+		this.weaponCooldownTime = weaponCooldownTime;
 	}
 
 	public fire(firing: Entity) {
@@ -32,7 +36,8 @@ class Phaser {
 
 		if (this.usage > this.maxUsage) {
 			this.disabled = true;
-		} else if (this.disabled && this.usage <= 0) {
+			this.weaponCooldown = this.weaponCooldownTime + 0;
+		} else if (this.disabled && this.usage <= 0 && this.weaponCooldown <= 0) {
 			this.disabled = false;
 		}
 
@@ -73,6 +78,7 @@ class Phaser {
 }
 
 interface shipClass {
+	className: string;
 	maxSpeed: number; // max speed
 	texture: string; // path to texture
 	startHealth: number; // Health to start off with
@@ -88,7 +94,7 @@ interface MovementAction {
 	main();
 	loop();
 	i: number;
-	goTo: (Entity | {x: number, y: number});
+	goTo: (Entity | { x: number, y: number, speed?: number });
 }
 
 class Entity {
@@ -102,10 +108,12 @@ class Entity {
 	x: number;
 	y: number;
 	trails: object;
+	followers: number;
 	weapons?: Phaser[];
 	distance?: number;
 	action?: MovementAction;
 	calledForBackup?: boolean;
+	following?: Entity;
 
 	constructor({
 		ship,
@@ -130,6 +138,7 @@ class Entity {
 		this.speed = speed;
 		this.x = x;
 		this.y = y;
+		this.followers = 0;
 		this.trails = {}
 	}
 
@@ -169,6 +178,11 @@ class Entity {
 						if(ship.faction === player.faction && ship !== player) ship.moveTo(player);
 					});
 				}
+				if(pressedKeys["8"] && !this.action) {
+					entities.forEach(ship => {
+						if(ship !== player) ship.moveTo(player);
+					});
+				}
 				if(pressedKeys["c"] && this.action) {
 					delete this.action;
 				}
@@ -178,16 +192,42 @@ class Entity {
 						weapon.fire(this);
 					}
 				}
-			}			
+			}		
 
 		} else {
+
+			let ships = getShipDistances(this).filter(sh => sh.distance < 3e5 && sh.health > 0);
+			if(ships.length > 0) {
+
+				if(!this.following ||
+					this.following.faction === this.faction && this.following !== player && ships[0] === player) {
+					this.following = ships[0];
+					this.following.followers++
+				}
+
+			}
+
 			for (let weapon of (this.weapons || [])) {
 				weapon.fire(this);
 			}
 		}
+		
+		// If following someone...
+		if(this.following) {
+			if(this.following.health > 0) {
+				
+				if(!this.action || this.action.goTo !== this.following) {
+					this.moveTo(this.following);
+				}
+
+			} else {
+				this.following.followers--
+				delete this.following;
+			}
+		}
 
 		// Heal friendly nearby ships
-		let healable = getShipDistances(this).filter(sh => sh.faction === this.faction && sh.distance < 250 && sh.health < sh.ship.startHealth);
+		let healable = getShipDistances(this).filter(sh => sh.faction === this.faction && sh.distance < 250 && sh.health < sh.ship.startHealth && this.health > 0);
 		for(let ship of healable) {
 			ship.health += 0.1;
 		}
@@ -195,6 +235,7 @@ class Entity {
 		// Weapon cooldown
 		for (let weapon of (this.weapons || [])) {
 			if (weapon.usage > 0) weapon.usage -= 0.5;
+			if (weapon.weaponCooldown > 0) weapon.weaponCooldown -= 0.5;
 		}
 		
 		// Speed checks
@@ -235,6 +276,10 @@ class Entity {
 			this.callForBackup();
 		}
 
+		if(this.health < 0) {
+			this.health = 0;
+		}
+
 	}
 
 	public callForBackup() {
@@ -242,10 +287,12 @@ class Entity {
 
 			console.log("Called for backup");
 
-			let nearbyFriendlies = getShipDistances(this).filter(sh => sh.faction === this.faction).slice(0, 3);
+			let nearbyFriendlies = getShipDistances(this).filter(sh => sh.faction === this.faction && sh !== player).slice(0, 3);
+
+			console.log(`${nearbyFriendlies.length} ${this.faction === player.faction ? "friendly" : "hostile"} ships are now approaching a ${this.ship.className} type ship`)
 
 			for(let friendly of nearbyFriendlies) {
-				friendly.moveTo(this);
+				friendly.following = this;
 			}
 
 			this.calledForBackup = true;
@@ -273,6 +320,7 @@ class Entity {
 				if(i >= 0 && distance > maxDist) {
 					let dirTo = Math.atan2(goToY - this.y, goToX - this.x);
 					function normalizeAngle(a: number) {
+						// No idea
 						let totalRange = Math.PI * 2;
 						if(a > Math.PI) {
 							a -= totalRange;
@@ -284,8 +332,11 @@ class Entity {
 					let relativeHeading = normalizeAngle(dirTo - this.rotation);
 					this.rotation += relativeHeading / 10;
 				}
-				if(i >= 100 && distance > maxDist) this.accelarate();
-				if(distance < maxDist * 10 && this.speed > 0) this.deccelarate();
+				if(i >= 100 && distance > maxDist * 10) this.accelarate();
+				if(i >= 100 && distance > maxDist && this.speed < (goTo.speed || 9e9)) this.accelarate();
+				
+				if(distance < maxDist * 4 && this.speed > (goTo.speed || 15)) this.deccelarate();
+				if(distance < maxDist && this.speed > (goTo.speed || 0)) this.deccelarate();
 				if(distance < maxDist && this.speed <= 0) delete this.action;
 			},
 			loop: () => {
@@ -359,7 +410,7 @@ class Entity {
 
 const shipClasses = {
 	"warbird": {
-		className: "Romuland Warbird",
+		className: "Romulan Warbird",
 		faction: "Romulan",
 		maxSpeed: 30,
 		texture: "3.png",
@@ -416,7 +467,7 @@ const shipClasses = {
 	"cube": {
 		className: "Borg cube",
 		faction: "Borg",
-		maxSpeed: 2500,
+		maxSpeed: 25,
 		texture: "borg.png",
 		startHealth: 2e3,
 		rotSpeed: 20,
@@ -479,6 +530,37 @@ const shipClasses = {
 			})
 		]
 	},
+	"nerada": {
+		className: "Nerada",
+		faction: "Romulan",
+		maxSpeed: 90,
+		texture: "nerada.png",
+		startHealth: 600,
+		rotSpeed: 10,
+		imageScale: 0.6,
+		accelaration: 0.6,
+		trailExits: [
+			[0, 20]
+		],
+		weapons: [
+			new Phaser({
+				dps: 900,
+				color: "white",
+				maxDistance: 500,
+				shortcut: "k",
+				maxUsage: 4,
+				weaponCooldownTime: 300,
+				position: [-Math.PI-0.2, 48]
+			}),
+			new Phaser({
+				dps: 40,
+				color: "white",
+				maxDistance: 1000,
+				shortcut: " ",
+				position: [-Math.PI+0.2, 48]
+			})
+		]
+	},
 	"explorer": {
 		className: "Explorer",
 		faction: "Starfleet",
@@ -512,15 +594,42 @@ function genShips(): void {
 	let init = true;
 	for (let i = 0; i < entityCount; i++) {
 		let allShips = Object.values(shipClasses);
-		let randomShip = allShips[Math.floor(Math.random() * allShips.length)];
-		while(randomShip.faction === "Borg") {
-			randomShip = allShips[Math.floor(Math.random() * allShips.length)];
+		
+		let shipChances = {
+			warbird: 0.8,
+			dreadnought: 1,
+			defiant: 1,
+			explorer: 1,
+			nerada: 0.1,
+			cube: 0.02
 		}
+
+		let shipChancesArr = Object.entries(shipChances);
+		let smallest = 1;
+		for(let entry of shipChancesArr) {
+			if(entry[1] < smallest) smallest = entry[1];
+		}
+		let dividingFactor = 1 / smallest;
+		shipChancesArr.forEach(entry => entry[1] *= dividingFactor);
+		let shipNames = shipChancesArr.map(entry => {
+			let arr = [];
+			for(let i = 0; i < entry[1]; i++) {
+				arr.push(entry[0]);
+			}
+			return arr;
+		}).flat();
+
+		let randomShip = shipClasses[shipNames[Math.floor(Math.random() * shipNames.length)]];
+		
+		// Force ship type
 		if(borgMode && init) {
 			randomShip = shipClasses["cube"];
+		} else if(borgMode && !init) {
+			randomShip = shipClasses["nerada"]
 		} else if(init) {
 			randomShip = shipClasses["explorer"];
 		}
+
 		entities.push(new Entity({
 			ship: randomShip,
 			faction: randomShip.faction,
@@ -530,27 +639,6 @@ function genShips(): void {
 			rotation: init ? 0 : undefined
 		}));
 		if (init) init = false;
-	}
-
-	if(!borgMode) {
-		let cube = shipClasses["cube"];
-		entities.push(new Entity({
-			ship: cube,
-			faction: cube.faction,
-			controllable: false,
-			x: -123456 * 2,
-			y: 900,
-			speed: 15
-		}));
-
-		let fleetShip = shipClasses["explorer"]
-		let borgFleetSettings = {
-			ship: fleetShip,
-			faction: fleetShip.faction,
-			controllable: true,
-			rotation: 0
-		}
-
 	}
 
 	function randomCoords(spread) {
@@ -646,7 +734,7 @@ class PlayerData {
 
 	constructor() {
 		this.waypoints = [];
-		this.minRadius = Math.abs(getShipSize() - 50);
+		this.minRadius = Math.abs(getShipSize()) + 30;
 		this.maxRadius = Math.abs(getShipSize() + 200);
 	}
 
@@ -710,7 +798,7 @@ class PlayerData {
 				ctx.fillStyle = "gray";
 				ctx.fillRect(-barWidth / 2, 0, barWidth, 10);
 				ctx.fillStyle = weapon.disabled ? "red" : "orange";
-				ctx.fillRect(-barWidth / 2, 0, (weapon.usage / weapon.maxUsage) * barWidth, 10);
+				ctx.fillRect(-barWidth / 2, 0, (weapon.disabled ? weapon.weaponCooldown / weapon.weaponCooldownTime : weapon.usage / weapon.maxUsage) * barWidth, 10);
 			}
 
 			ctx.restore();
