@@ -79,6 +79,6 @@ class BackdropStar {
 
 let backdrop = new Backdrop();
 
-function getShipSize(): number {
-	return ((player.ship.image.width / scale) * (player.ship.imageScale || 1)) - 50;
+function getShipSize(entity: Entity = player): number {
+	return ((entity.ship.image.width / scale) * (entity.ship.imageScale || 1)) - 50;
 }

@@ -1,5 +1,4 @@
 
-
 class Phaser {
 	public dps: number;
 	public color: string;
@@ -50,7 +49,13 @@ class Phaser {
 			let [setX, setY] = getCustomPosition(position, firing);
 
 			ctx.moveTo(setX - player.x, setY - player.y);
-			ctx.lineTo(closest.x - player.x, closest.y - player.y);
+			let fireX = closest.x - player.x;
+			let fireY = closest.y - player.y;
+			let size = Math.abs(getShipSize(closest));
+			function getRandOffset(): number {
+				return (Math.random() * size) - size / 2;
+			}
+			ctx.lineTo(fireX + getRandOffset(), fireY + getRandOffset());
 
 			ctx.strokeStyle = this.color;
 			ctx.lineWidth = 3;
@@ -79,6 +84,13 @@ interface shipClass {
 	weapons?: Phaser[];
 }
 
+interface MovementAction {
+	main();
+	loop();
+	i: number;
+	goTo: (Entity | {x: number, y: number});
+}
+
 class Entity {
 	ship: shipClass;
 	faction: string;
@@ -92,6 +104,8 @@ class Entity {
 	trails: object;
 	weapons?: Phaser[];
 	distance?: number;
+	action?: MovementAction;
+	calledForBackup?: boolean;
 
 	constructor({
 		ship,
@@ -100,7 +114,8 @@ class Entity {
 		controllable = false,
 		x = 0,
 		y = 0,
-		rotation = Math.random() * (Math.PI * 2)
+		rotation = Math.random() * (Math.PI * 2),
+		speed = 5
 	}) {
 		this.ship = ship;
 		this.ship.image = new Image();
@@ -112,7 +127,7 @@ class Entity {
 		this.controllable = controllable;
 		this.health = ship.startHealth + 0;
 		this.rotation = rotation;
-		this.speed = 0;
+		this.speed = speed;
 		this.x = x;
 		this.y = y;
 		this.trails = {}
@@ -123,7 +138,8 @@ class Entity {
 		if (this.controllable) {
 
 			if(this === player && this.health <= 0) {
-				let alternative: (Entity | void) = entities.find(ent => ent.controllable && ent.health > 0);
+				let ships = getShipDistances();
+				let alternative: (Entity | void) = ships.find(ent => ent.controllable && ent.health > 0);
 				if(alternative) {
 					alert("Switched bodies");
 					player = alternative;
@@ -131,19 +147,32 @@ class Entity {
 			}
 			
 			if(this.health > 0) {
-				if ((pressedKeys["w"] && this.speed < 5) || (pressedKeys["w"] && pressedKeys["shift"])) {
+
+				if (((pressedKeys["w"] && this.speed < 5) || (pressedKeys["w"] && pressedKeys["shift"])) && !this.action) {
 					this.accelarate();
 				}
-				if (pressedKeys["s"]) {
+				if (pressedKeys["s"] && !this.action) {
 					this.deccelarate();
 				}
-				if (pressedKeys["a"]) {
+				if (pressedKeys["a"] && !this.action) {
 					this.turnLeft();
 				}
-				if (pressedKeys["d"]) {
+				if (pressedKeys["d"] && !this.action) {
 					this.turnRight();
 				}
-	
+
+				if(pressedKeys["0"] && !this.action) {
+					this.moveTo({x: 0, y: 0});
+				}
+				if(pressedKeys["9"] && !this.action) {
+					entities.forEach(ship => {
+						if(ship.faction === player.faction && ship !== player) ship.moveTo(player);
+					});
+				}
+				if(pressedKeys["c"] && this.action) {
+					delete this.action;
+				}
+ 	
 				for (let weapon of (this.weapons || [])) {
 					if (pressedKeys[weapon.shortcut]) {
 						weapon.fire(this);
@@ -152,39 +181,36 @@ class Entity {
 			}			
 
 		} else {
-			if(this.faction === "Borg") {
-				let closestShips = getShipDistances(this)
-					.filter(ent => ent !== this && ent.faction !== this.faction && ent.health > 0);
-				let closest = closestShips[0];
-				if(closest.distance > 1000) {
-					this.rotation = Math.atan2(closest.y - this.y, closest.x - this.x);
-				}
-				if(this.speed < 600) {
-					this.accelarate();
-				}
-			} else {
-				this.accelarate();
-			}
 			for (let weapon of (this.weapons || [])) {
 				weapon.fire(this);
 			}
 		}
 
+		// Heal friendly nearby ships
+		let healable = getShipDistances(this).filter(sh => sh.faction === this.faction && sh.distance < 250 && sh.health < sh.ship.startHealth);
+		for(let ship of healable) {
+			ship.health += 0.1;
+		}
+
+		// Weapon cooldown
 		for (let weapon of (this.weapons || [])) {
 			if (weapon.usage > 0) weapon.usage -= 0.5;
 		}
-
+		
+		// Speed checks
 		let ms = this.ship.maxSpeed * (this.health / this.ship.startHealth);
 		if (ms < 0) ms = 0;
 		if (this.speed > ms) {
 			this.speed = ms;
 		}
 
+		// Movement
 		let newX = this.speed * Math.cos(this.rotation);
 		let newY = this.speed * Math.sin(this.rotation);
 		this.x += newX;
 		this.y += newY;
 
+		// Draw trails
 		for (let i = 0; i < (this.ship.trailExits || []).length; i++) {
 			if (typeof this.trails[i] === "undefined") this.trails[i] = [];
 
@@ -199,6 +225,66 @@ class Entity {
 			}
 		}
 
+		// If there is an action (like moving towards something), run its main thing
+		if(this.action) {
+			this.action.loop();
+		}
+
+		// Call for backup if there's the need
+		if(this.health > 0 && this.health / this.ship.startHealth < 0.4 && !this.calledForBackup) { // 40%
+			this.callForBackup();
+		}
+
+	}
+
+	public callForBackup() {
+		if(!this.calledForBackup) {
+
+			console.log("Called for backup");
+
+			let nearbyFriendlies = getShipDistances(this).filter(sh => sh.faction === this.faction).slice(0, 3);
+
+			for(let friendly of nearbyFriendlies) {
+				friendly.moveTo(this);
+			}
+
+			this.calledForBackup = true;
+		}
+	}
+
+	public moveTo(location: (Entity | {x: number, y: number})) {
+		let ships = getShipDistances();
+		let ent = ships[Math.floor(Math.random() * ships.length)];
+		this.action = {
+			i: 0,
+			main: () => {
+				let goTo = this.action.goTo;
+				let goToX = goTo.x;
+				let goToY = goTo.y;
+
+				let maxDist = 300;
+
+				let { i } = this.action;
+
+				let distanceX = this.x - goToX;
+				let distanceY = this.y - goToY;
+				let distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+
+				if(i >= 0 && distance > maxDist) {
+					let dirTo = Math.atan2(goToY - this.y, goToX - this.x);
+					let relativeHeading = (dirTo - (this.rotation % Math.PI));
+					this.rotation = (this.rotation % Math.PI) + relativeHeading / 10;
+				}
+				if(i >= 100 && distance > maxDist) this.accelarate();
+				if(distance < maxDist * 10 && this.speed > 0) this.deccelarate();
+				if(distance < maxDist && this.speed <= 0) delete this.action;
+			},
+			loop: () => {
+				this.action.i++
+				this.action.main();
+			},
+			goTo: location
+		}
 	}
 
 	public accelarate() {
@@ -276,14 +362,14 @@ const shipClasses = {
 		weapons: [
 			new Phaser({
 				dps: 40,
-				color: "green",
+				color: "red",
 				maxDistance: 2000,
 				shortcut: " ",
 				position: [Math.PI / 2, 100]
 			}),
 			new Phaser({
 				dps: 40,
-				color: "green",
+				color: "red",
 				maxDistance: 2000,
 				shortcut: " ",
 				position: [-Math.PI / 2, 100]
@@ -303,16 +389,16 @@ const shipClasses = {
 		],
 		weapons: [
 			new Phaser({
-				dps: 20,
+				dps: 5,
 				color: "purple",
-				maxDistance: 1000,
+				maxDistance: 500,
 				shortcut: " ",
 				position: [-(Math.PI + 0.09), 390]
 			}),
 			new Phaser({
-				dps: 20,
+				dps: 5,
 				color: "purple",
-				maxDistance: 1000,
+				maxDistance: 500,
 				shortcut: " ",
 				position: [-(Math.PI - 0.09), 390]
 			})
@@ -323,10 +409,10 @@ const shipClasses = {
 		faction: "Borg",
 		maxSpeed: 2500,
 		texture: "borg.png",
-		startHealth: 200e3,
+		startHealth: 2e3,
 		rotSpeed: 20,
 		imageScale: 10,
-		accelaration: 1,
+		accelaration: 5,
 		weapons: [
 			new Phaser({
 				dps: 20,
@@ -438,13 +524,14 @@ function genShips(): void {
 	}
 
 	if(!borgMode) {
-		let ship = shipClasses["cube"];
+		let cube = shipClasses["cube"];
 		entities.push(new Entity({
-			ship: ship,
-			faction: ship.faction,
+			ship: cube,
+			faction: cube.faction,
 			controllable: false,
-			x: -1234567,
-			y: 900
+			x: -123456 * 2,
+			y: 900,
+			speed: 15
 		}));
 
 		let fleetShip = shipClasses["explorer"]
@@ -454,31 +541,6 @@ function genShips(): void {
 			controllable: true,
 			rotation: 0
 		}
-		entities.push(new Entity({
-			...borgFleetSettings,
-			x: -250, y: 0
-		}));
-		entities.push(new Entity({
-			...borgFleetSettings,
-			x: -250, y: -250
-		}));
-		entities.push(new Entity({
-			...borgFleetSettings,
-			x: -250, y: 250
-		}));
-
-		entities.push(new Entity({
-			...borgFleetSettings,
-			x: 250, y: 0
-		}));
-		entities.push(new Entity({
-			...borgFleetSettings,
-			x: 250, y: -250
-		}));
-		entities.push(new Entity({
-			...borgFleetSettings,
-			x: 250, y: 250
-		}));
 
 	}
 
@@ -488,6 +550,23 @@ function genShips(): void {
 
 }
 genShips();
+
+function spawnExplorers() {
+	let fleetShip = shipClasses["explorer"];
+	let borgFleetSettings = {
+		ship: fleetShip,
+		faction: fleetShip.faction,
+		controllable: false,
+		rotation: 0
+	}
+	for(let i = 0; i < 100; i++) {
+		entities.push(new Entity({
+			...borgFleetSettings,
+			x: Math.random() * 5e3,
+			y: Math.random() * 5e3,
+		}));
+	}
+}
 
 let player = entities.find(ship => ship.controllable === true);
 
@@ -523,7 +602,7 @@ class Waypoint {
 		ctx.rotate(-rot);
 		if(this.target.faction !== "Borg") {
 			ctx.beginPath();
-			ctx.arc(0, 0, cubeSize/4, 0, Math.PI*2);
+			// ctx.arc(0, 0, cubeSize/4, 0, Math.PI*2);
 			
 			ctx.fillStyle = "green";
 			if(this.target.faction !== player.faction) ctx.fillStyle = "orange";
@@ -537,8 +616,7 @@ class Waypoint {
 				}
 			}
 
-
-			ctx.fill();
+			ctx.fillRect(-cubeSize/4, -cubeSize/4, cubeSize/2, cubeSize/2);
 		} else {
 			ctx.fillStyle = "red";
 			ctx.fillRect(-cubeSize/2, -cubeSize/2, cubeSize, cubeSize);

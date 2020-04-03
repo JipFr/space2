@@ -28,7 +28,7 @@ function draw(): void {
 	}
 	playerData.drawGUI()
 	for(let waypoint of playerData.waypoints) {
-		waypoint.draw();
+		if(waypoint.target !== player) waypoint.draw();
 	}
 
 }
