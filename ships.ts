@@ -272,7 +272,18 @@ class Entity {
 
 				if(i >= 0 && distance > maxDist) {
 					let dirTo = Math.atan2(goToY - this.y, goToX - this.x);
-					let relativeHeading = (dirTo - (this.rotation % Math.PI));
+					// let relativeHeading = (dirTo - (this.rotation % Math.PI));
+					function normalizeAngle(a: number) {
+						// return a + ((a>Math.PI) ? -(Math.PI * 2) : (a<-Math.PI) ? (Math.PI * 2) : 0);
+						let totalRange = Math.PI * 2;
+						if(a > Math.PI) {
+							a -= totalRange;
+						} else if(a < -Math.PI) {
+							a += totalRange;
+						}
+						return a;
+					}
+					let relativeHeading = normalizeAngle(dirTo - this.rotation);
 					this.rotation += relativeHeading / 10;
 				}
 				if(i >= 100 && distance > maxDist) this.accelarate();
