@@ -39,7 +39,9 @@ class Backdrop {
 class BackdropStar {
 	public x: number;
 	public y: number;
-	constructor({x, y}) {
+	protected centerOffsetX: number;
+	protected centerOffsetY: number;
+	constructor({x, y}: {x: number, y: number}) {
 		this.x = x;
 		this.y = y;
 	}
@@ -49,16 +51,29 @@ class BackdropStar {
 		velX = Math.abs(velX);
 		velY = Math.abs(velY);
 
-		if(this.x - player.x < -velX) {
-			this.x = (canvas.width + player.x) + Math.abs(this.x - player.x);
-		} else if(this.x - player.x > canvas.width + velX) {
-			this.x = player.x - velX + (this.x - player.x - canvas.width);
+		let centerOffsetX = this.x - player.x;
+		let centerOffsetY = this.y - player.y;
+		
+		while(centerOffsetX > canvas.width) {
+			let change = (centerOffsetX % canvas.width) - centerOffsetX;
+			centerOffsetX += change;
+			this.x += change;
+		} 
+		while(centerOffsetX < 0) {
+			let change = (centerOffsetX % canvas.width + canvas.width) - centerOffsetX;
+			centerOffsetX += change;
+			this.x += change;	
 		}
 
-		if(this.y - player.y < -velY) {
-			this.y = (canvas.height + player.y) + Math.abs(this.y - player.y);
-		} else if(this.y - player.y > canvas.height + velY) {
-			this.y = player.y - velY + (this.y - player.y - canvas.height);
+		while(centerOffsetY > canvas.height) {
+			let change = (centerOffsetY % canvas.height) - centerOffsetY;
+			centerOffsetY += change;
+			this.y += change;
+		} 
+		while(centerOffsetY < 0) {
+			let change = (centerOffsetY % canvas.height + canvas.height) - centerOffsetY;
+			centerOffsetY += change;
+			this.y += change;
 		}
 
 	}
