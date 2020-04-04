@@ -201,8 +201,14 @@ class Entity {
 			let ships = getShipDistances(this).filter(sh => sh.distance < 3e5 && sh.health > 0);
 			if(ships.length > 0) {
 
-				if(!this.following ||
-					this.following.faction === this.faction && this.following !== player && ships[0] === player) {
+				if((!this.following ||
+					(
+					 this.following.faction === this.faction && 
+					 !(this.following === player && player.health > 0) && 
+					 ships[0] === player
+					)) &&
+					ships[0].following !== this
+				) {
 					this.following = ships[0];
 					this.following.followers++
 				}
@@ -222,7 +228,7 @@ class Entity {
 					this.moveTo(this.following);
 				}
 
-			} else if(this.following !== player) {
+			} else if(this.following !== player || this.following.faction !== this.faction) {
 				this.following.followers--
 				delete this.following;
 			}
@@ -332,7 +338,7 @@ class Entity {
 						return a;
 					}
 					let relativeHeading = normalizeAngle(dirTo - this.rotation);
-					if(this.health > 0) this.rotation += relativeHeading / 10;
+					if(this.health > 0) this.rotation += relativeHeading / 30;
 				}
 				if(i >= 100 && distance > maxDist * 10) this.accelarate();
 				if(i >= 100 && distance > maxDist && this.speed < (goTo.speed || 9e9)) this.accelarate();
@@ -469,7 +475,7 @@ const shipClasses = {
 	"cube": {
 		className: "Borg cube",
 		faction: "Borg",
-		maxSpeed: 25,
+		maxSpeed: 900,
 		texture: "borg.png",
 		startHealth: 2e3,
 		rotSpeed: 20,
@@ -625,6 +631,50 @@ const shipClasses = {
 				position: [Math.PI, 100]
 			})
 		]
+	},
+	"breen_explorer": {
+		className: "Breen Explorer",
+		faction: "Breen",
+		maxSpeed: 500,
+		accelaration: 1,
+		texture: "alien1.png",
+		startHealth: 100,
+		rotSpeed: 50,
+		imageScale: 3,
+		weapons: [],
+		trailExits: [
+			[0, 320]
+		]
+	},
+	"breen_warship": {
+		className: "Breen Warship",
+		faction: "Breen",
+		maxSpeed: 25,
+		accelaration: 0.3,
+		texture: "alien3.png",
+		startHealth: 900,
+		rotSpeed: 30,
+		imageScale: 5,
+		weapons: [
+			new Phaser({
+				dps: 20,
+				color: "purple",
+				maxDistance: 1200,
+				shortcut: " ",
+				position: [Math.PI-0.45, 420]
+			}),
+			new Phaser({
+				dps: 20,
+				color: "purple",
+				maxDistance: 1200,
+				shortcut: " ",
+				position: [Math.PI-0.72, 370]
+			})
+		],
+		trailExits: [
+			[0.2, 330],
+			[-0.2, 330]
+		]
 	}
 }
 
@@ -642,10 +692,11 @@ function genShips(): void {
 			warbird: 0.8,
 			dreadnought: 1,
 			defiant: 1,
+			breen_explorer: 1,
 			explorer: 1,
 			nerada: 0.1,
 			cube: 0.02,
-			god: 0.005
+			god: 0.005,
 		}
 
 		let shipChancesArr = Object.entries(shipChances);
@@ -670,6 +721,8 @@ function genShips(): void {
 			randomShip = shipClasses["cube"];
 		} else if(borgMode && !init) {
 			randomShip = shipClasses["nerada"]
+		} else if(init) {
+			randomShip = shipClasses.breen_warship;
 		}
 
 		entities.push(new Entity({
@@ -690,7 +743,7 @@ function genShips(): void {
 }
 genShips();
 
-function spawnExplorers() {
+function spawnExplorers(amount: number = 1) {
 	let fleetShip = shipClasses["explorer"];
 	let borgFleetSettings = {
 		ship: fleetShip,
@@ -698,13 +751,14 @@ function spawnExplorers() {
 		controllable: false,
 		rotation: 0
 	}
-	for(let i = 0; i < 100; i++) {
+	for(let i = 0; i < amount; i++) {
 		entities.push(new Entity({
 			...borgFleetSettings,
 			x: Math.random() * 5e3,
 			y: Math.random() * 5e3,
 		}));
 	}
+	playerData.waypoints = entities.map(ent => new Waypoint({ target: ent }));
 }
 
 let player = entities.find(ship => ship.controllable === true);
@@ -714,7 +768,7 @@ class Waypoint {
 
 	public distance?: number;
 
-	constructor({ target }) {
+	constructor({ target }: { target: Entity }) {
 		this.target = target;
 	}
 
@@ -757,7 +811,7 @@ class Waypoint {
 
 			ctx.fillRect(-cubeSize/4, -cubeSize/4, cubeSize/2, cubeSize/2);
 		} else {
-			ctx.fillStyle = "red";
+			ctx.fillStyle = this.target.health > 0 ? "red" : "gray";
 			ctx.fillRect(-cubeSize/2, -cubeSize/2, cubeSize, cubeSize);
 		}
 
@@ -796,7 +850,7 @@ class PlayerData {
 		ctx.arc(0, 0, this.maxRadius, 0, Math.PI * 2);
 		ctx.stroke();
 
-		if (playerData.waypoints.length <= 2) {
+		if (playerData.waypoints.length <= 2 || true) {
 			ctx.rotate(player.rotation);
 			ctx.beginPath();
 
