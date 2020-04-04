@@ -70,10 +70,28 @@ function init(): void {
 	}
 
 	backdrop.populateStars();
-	window.addEventListener("resize", () => {
-		backdrop.populateStars();
-	});
+	// window.addEventListener("resize", () => {
+	// 	backdrop.populateStars();
+	// });
+	// setResizeHandler(() => {
+	// 	backdrop.populateStars();
+	// }, 100);
+	
 	loop();
+}
+
+function setResizeHandler(callback, timeout) {
+    var timer_id = undefined;
+    window.addEventListener("resize", function() {
+        if(timer_id != undefined) {
+            clearTimeout(timer_id);
+            timer_id = undefined;
+        }
+        timer_id = setTimeout(function() {
+            timer_id = undefined;
+            callback();
+        }, timeout);
+    });
 }
 
 

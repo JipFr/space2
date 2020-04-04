@@ -44,16 +44,21 @@ class BackdropStar {
 		this.y = y;
 	}
 	public update(): void {
-		if(this.x - player.x < -player.speed) {
+
+		let [velX, velY] = player.velocity;
+		velX = Math.abs(velX);
+		velY = Math.abs(velY);
+
+		if(this.x - player.x < -velX) {
 			this.x = (canvas.width + player.x) + Math.abs(this.x - player.x);
-		} else if(this.x - player.x > canvas.width + player.speed) {
-			this.x = player.x - player.speed + (this.x - player.x - canvas.width);
+		} else if(this.x - player.x > canvas.width + velX) {
+			this.x = player.x - velX + (this.x - player.x - canvas.width);
 		}
 
-		if(this.y - player.y < -player.speed) {
+		if(this.y - player.y < -velY) {
 			this.y = (canvas.height + player.y) + Math.abs(this.y - player.y);
-		} else if(this.y - player.y > canvas.height + player.speed) {
-			this.y = player.y - player.speed + (this.y - player.y - canvas.height);
+		} else if(this.y - player.y > canvas.height + velY) {
+			this.y = player.y - velY + (this.y - player.y - canvas.height);
 		}
 
 	}

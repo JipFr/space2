@@ -110,6 +110,7 @@ class Entity {
 	y: number;
 	trails: object;
 	followers: number;
+	velocity: [number, number];
 	weapons?: Phaser[];
 	distance?: number;
 	action?: MovementAction;
@@ -141,83 +142,89 @@ class Entity {
 		this.y = y;
 		this.followers = 0;
 		this.trails = {}
+		this.velocity = [0, 0];
+	}
+
+	protected updateControllable(): void {
+		if(this === player && this.health <= 0) {
+			let ships = getShipDistances();
+			let alternative: (Entity | void) = ships.find(ent => ent.controllable && ent.health > 0);
+			if(alternative) {
+				alert("Switched bodies");
+				player = alternative;
+			}
+		}
+		
+		if(this.health > 0) {
+
+			if (((pressedKeys["w"] && this.speed < 5) || (pressedKeys["w"] && pressedKeys["shift"])) && !this.action) {
+				this.accelerate();
+			}
+			if (pressedKeys["s"] && !this.action) {
+				this.deccelerate();
+			}
+			if (pressedKeys["a"] && !this.action) {
+				this.turnLeft();
+			}
+			if (pressedKeys["d"] && !this.action) {
+				this.turnRight();
+			}
+
+			if(pressedKeys["0"] && !this.action) {
+				this.moveTo({x: 0, y: 0});
+			}
+			if(pressedKeys["9"] && !this.action) {
+				entities.forEach(ship => {
+					if(ship.faction === player.faction && ship !== player) ship.moveTo(player);
+				});
+			}
+			if(pressedKeys["8"] && !this.action) {
+				entities.forEach(ship => {
+					if(ship !== player) ship.moveTo(player);
+				});
+			}
+			if(pressedKeys["c"] && this.action) {
+				delete this.action;
+				delete this.following;
+			}
+ 
+			for (let weapon of (this.weapons || [])) {
+				if (pressedKeys[weapon.shortcut]) {
+					weapon.fire(this);
+				}
+			}
+		}	
+	}
+
+	protected updateNonControllable(): void {
+		let ships = getShipDistances(this).filter(sh => sh.distance < 3e5 && sh.health > 0);
+		if(ships.length > 0) {
+
+			if((!this.following ||
+				(
+				 this.following.faction === this.faction && 
+				 !(this.following === player && player.health > 0) && 
+				 ships[0] === player
+				)) &&
+				ships[0].following !== this
+			) {
+				this.following = ships[0];
+				this.following.followers++
+			}
+
+		}
+
+		for (let weapon of (this.weapons || [])) {
+			weapon.fire(this);
+		}
 	}
 
 	public update(): void {
 
 		if (this.controllable) {
-
-			if(this === player && this.health <= 0) {
-				let ships = getShipDistances();
-				let alternative: (Entity | void) = ships.find(ent => ent.controllable && ent.health > 0);
-				if(alternative) {
-					alert("Switched bodies");
-					player = alternative;
-				}
-			}
-			
-			if(this.health > 0) {
-
-				if (((pressedKeys["w"] && this.speed < 5) || (pressedKeys["w"] && pressedKeys["shift"])) && !this.action) {
-					this.accelarate();
-				}
-				if (pressedKeys["s"] && !this.action) {
-					this.deccelarate();
-				}
-				if (pressedKeys["a"] && !this.action) {
-					this.turnLeft();
-				}
-				if (pressedKeys["d"] && !this.action) {
-					this.turnRight();
-				}
-
-				if(pressedKeys["0"] && !this.action) {
-					this.moveTo({x: 0, y: 0});
-				}
-				if(pressedKeys["9"] && !this.action) {
-					entities.forEach(ship => {
-						if(ship.faction === player.faction && ship !== player) ship.moveTo(player);
-					});
-				}
-				if(pressedKeys["8"] && !this.action) {
-					entities.forEach(ship => {
-						if(ship !== player) ship.moveTo(player);
-					});
-				}
-				if(pressedKeys["c"] && this.action) {
-					delete this.action;
-					delete this.following;
-				}
- 	
-				for (let weapon of (this.weapons || [])) {
-					if (pressedKeys[weapon.shortcut]) {
-						weapon.fire(this);
-					}
-				}
-			}		
-
+			this.updateControllable();	
 		} else {
-
-			let ships = getShipDistances(this).filter(sh => sh.distance < 3e5 && sh.health > 0);
-			if(ships.length > 0) {
-
-				if((!this.following ||
-					(
-					 this.following.faction === this.faction && 
-					 !(this.following === player && player.health > 0) && 
-					 ships[0] === player
-					)) &&
-					ships[0].following !== this
-				) {
-					this.following = ships[0];
-					this.following.followers++
-				}
-
-			}
-
-			for (let weapon of (this.weapons || [])) {
-				weapon.fire(this);
-			}
+			this.updateNonControllable();
 		}
 		
 		// If following someone...
@@ -256,6 +263,7 @@ class Entity {
 		// Movement
 		let newX = this.speed * Math.cos(this.rotation);
 		let newY = this.speed * Math.sin(this.rotation);
+		this.velocity = [newX, newY];
 		this.x += newX;
 		this.y += newY;
 
@@ -340,11 +348,11 @@ class Entity {
 					let relativeHeading = normalizeAngle(dirTo - this.rotation);
 					if(this.health > 0) this.rotation += relativeHeading / 30;
 				}
-				if(i >= 100 && distance > maxDist * 10) this.accelarate();
-				if(i >= 100 && distance > maxDist && this.speed < (goTo.speed || 9e9)) this.accelarate();
+				if(i >= 100 && distance > maxDist * 10) this.accelerate();
+				if(i >= 100 && distance > maxDist && this.speed < (goTo.speed || 9e9)) this.accelerate();
 				
-				if(distance < maxDist * (player.speed*3) && this.speed > (goTo.speed || 15)) this.deccelarate();
-				if(distance < maxDist && this.speed > (goTo.speed || 0)) this.deccelarate();
+				if(distance < maxDist * (player.speed*3) && this.speed > (goTo.speed || 15)) this.deccelerate();
+				if(distance < maxDist && this.speed > (goTo.speed || 0)) this.deccelerate();
 				if(distance < maxDist && this.speed <= 0) delete this.action;
 			},
 			loop: () => {
@@ -355,13 +363,13 @@ class Entity {
 		}
 	}
 
-	public accelarate() {
+	public accelerate() {
 		if (this.speed < this.ship.maxSpeed) {
 			this.speed += <number>(this.ship.accelaration || 0.1);
 		}
 	}
 
-	public deccelarate() {
+	public deccelerate() {
 		if (this.speed > 3) {
 			this.speed *= 0.95;
 		} else if (this.speed > 0) {
@@ -721,8 +729,6 @@ function genShips(): void {
 			randomShip = shipClasses["cube"];
 		} else if(borgMode && !init) {
 			randomShip = shipClasses["nerada"]
-		} else if(init) {
-			randomShip = shipClasses.breen_warship;
 		}
 
 		entities.push(new Entity({
@@ -795,7 +801,6 @@ class Waypoint {
 		ctx.rotate(-rot);
 		if(this.target.faction !== "Borg") {
 			ctx.beginPath();
-			// ctx.arc(0, 0, cubeSize/4, 0, Math.PI*2);
 			
 			ctx.fillStyle = "green";
 			if(this.target.faction !== player.faction) ctx.fillStyle = "orange";
