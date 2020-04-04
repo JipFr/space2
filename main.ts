@@ -73,27 +73,26 @@ function init(): void {
 	// window.addEventListener("resize", () => {
 	// 	backdrop.populateStars();
 	// });
-	// setResizeHandler(() => {
-	// 	backdrop.populateStars();
-	// }, 100);
+	setResizeHandler(() => {
+		backdrop.populateStars();
+	}, 100);
 	
 	loop();
 }
 
-function setResizeHandler(callback, timeout) {
-    var timer_id = undefined;
-    window.addEventListener("resize", function() {
-        if(timer_id != undefined) {
-            clearTimeout(timer_id);
-            timer_id = undefined;
-        }
-        timer_id = setTimeout(function() {
-            timer_id = undefined;
-            callback();
-        }, timeout);
-    });
+function setResizeHandler(callback: CallableFunction, timeout: number) {
+	let timerId = null;
+	window.addEventListener("resize", () => {
+		if(timerId) {
+			clearTimeout(timerId);
+			timerId = null;
+		}
+		timerId = setTimeout(() => {
+			timerId= null;
+			callback();
+		}, timeout);
+	});
 }
-
 
 window.addEventListener("load", init);
 
