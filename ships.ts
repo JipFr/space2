@@ -228,6 +228,8 @@ class Entity {
 			) {
 				this.following = ships[0];
 				this.following.followers++
+			} else if(this.following && this.following.following) {
+				this.following = this.following.following;
 			}
 
 		}
@@ -739,7 +741,7 @@ function genShips(): void {
 			dreadnought: 1,
 			defiant: 1,
 			breen_explorer: 1,
-			breen_warship: 1,
+			breen_warship: 0.1,
 			explorer: 1,
 			nerada: 0.1,
 			cube: 0.02,
