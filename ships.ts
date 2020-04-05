@@ -69,6 +69,18 @@ class Phaser {
 			let turnDir = Math.floor(Math.random() * 2) === 0 ? "Left" : "Right";
 			if(!closest.ship.noShake) closest[`turn${turnDir}`]();
 			closest.health -= this.dps / 60;
+			if(closest.health <= 0 && !closest.isDead) {
+				closest.timesKilled++;
+				closest.isDead = true;
+				if(closest.timesKilled <= 1) {
+					// This is the first time the enemy ship is killed
+					// Give points to responsible party
+					let pointsTo = (firing.following ?? {}).faction === firing.faction ? firing.following : firing;
+					scoreboard.addPoints(pointsTo, closest);
+				} else {
+					console.log(closest.timesKilled);
+				}
+			}
 			this.usage++
 
 		}
@@ -92,8 +104,8 @@ interface shipClass {
 }
 
 interface MovementAction {
-	main();
-	loop();
+	main(): void;
+	loop(): void;
 	i: number;
 	goTo: (Entity | { x: number, y: number, speed?: number });
 }
@@ -109,7 +121,10 @@ class Entity {
 	x: number;
 	y: number;
 	trails: object;
+	timesKilled: number;
+	isDead: boolean;
 	followers: number;
+	points: number;
 	velocity: [number, number];
 	weapons?: Phaser[];
 	distance?: number;
@@ -143,6 +158,9 @@ class Entity {
 		this.followers = 0;
 		this.trails = {}
 		this.velocity = [0, 0];
+		this.isDead = this.health > 0;
+		this.timesKilled = 0;
+		this.points = 0;
 	}
 
 	protected updateControllable(): void {
@@ -225,6 +243,10 @@ class Entity {
 			this.updateControllable();	
 		} else {
 			this.updateNonControllable();
+		}
+
+		if(this.isDead && this.health > 0) {
+			this.isDead = false;
 		}
 		
 		// If following someone...
@@ -333,6 +355,8 @@ class Entity {
 				let distanceY = this.y - goToY;
 				let distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
 
+				this.distance = distance;
+
 				if(i >= 0 && distance > maxDist) {
 					let dirTo = Math.atan2(goToY - this.y, goToX - this.x);
 					function normalizeAngle(a: number) {
@@ -351,7 +375,7 @@ class Entity {
 				if(i >= 100 && distance > maxDist * 10) this.accelerate();
 				if(i >= 100 && distance > maxDist && this.speed < (goTo.speed || 9e9)) this.accelerate();
 				
-				if(distance < maxDist * (player.speed*3) && this.speed > (goTo.speed || 15)) this.deccelerate();
+				if(distance < maxDist + (player.speed * 20) || (this.speed > (goTo.speed || 15) && this.faction === goTo.faction && distance < 5e3)) this.deccelerate();
 				if(distance < maxDist && this.speed > (goTo.speed || 0)) this.deccelerate();
 				if(distance < maxDist && this.speed <= 0) delete this.action;
 			},
@@ -677,6 +701,20 @@ const shipClasses = {
 				maxDistance: 1200,
 				shortcut: " ",
 				position: [Math.PI-0.72, 370]
+			}),
+			new Phaser({
+				dps: 20,
+				color: "purple",
+				maxDistance: 1200,
+				shortcut: " ",
+				position: [Math.PI+0.45, 420]
+			}),
+			new Phaser({
+				dps: 20,
+				color: "purple",
+				maxDistance: 1200,
+				shortcut: " ",
+				position: [Math.PI+0.72, 370]
 			})
 		],
 		trailExits: [
@@ -701,6 +739,7 @@ function genShips(): void {
 			dreadnought: 1,
 			defiant: 1,
 			breen_explorer: 1,
+			breen_warship: 1,
 			explorer: 1,
 			nerada: 0.1,
 			cube: 0.02,
@@ -742,12 +781,12 @@ function genShips(): void {
 		if (init) init = false;
 	}
 
-	function randomCoords(spread) {
-		return Math.floor(Math.random() * spread) - spread / 2;
-	}
-
 }
 genShips();
+
+function randomCoords(spread) {
+	return Math.floor(Math.random() * spread) - spread / 2;
+}
 
 function spawnExplorers(amount: number = 1) {
 	let fleetShip = shipClasses["explorer"];
@@ -764,6 +803,10 @@ function spawnExplorers(amount: number = 1) {
 			y: Math.random() * 5e3,
 		}));
 	}
+	updateWaypoints();
+}
+
+function updateWaypoints(): void {
 	playerData.waypoints = entities.map(ent => new Waypoint({ target: ent }));
 }
 

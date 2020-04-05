@@ -21,6 +21,35 @@ document.addEventListener("keyup", (evt: KeyboardEvent) => {
 	pressedKeys[evt.key.toLowerCase()] = false;
 });
 
+function getRandomShip(): Entity {
+	let ships = entities.slice(1);
+	return ships[Math.floor(Math.random() * ships.length)];
+}
+
+class Scoreboard {
+	public points: number;
+	public highScore: number;
+
+	constructor() {
+		this.highScore = Number(localStorage.getItem("highScore") ?? this.points);
+	}
+
+	public addPoints(pointsTo: Entity = player, killed: Entity): void {
+		pointsTo.points += Math.floor(killed.ship.startHealth / 100);
+		if(pointsTo === player) this.updateHigh();
+	}
+
+	protected updateHigh(): void {
+		if(player.points > this.highScore) {
+			this.highScore = player.points;
+			localStorage.setItem("highScore", this.highScore.toString());
+		}
+	}
+
+}
+
+const scoreboard = new Scoreboard();
+
 class Backdrop {
 	items: BackdropStar[];
 	constructor() {
