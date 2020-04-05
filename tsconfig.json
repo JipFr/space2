@@ -2,7 +2,8 @@
 	"files": [
 		"init.ts",
 		"main.ts",
-		"ships.ts"
+		"ships.ts",
+		"controller.ts"
 	],
 	"compilerOptions": {
 		"target": "ES2020",

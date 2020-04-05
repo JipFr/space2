@@ -175,6 +175,16 @@ class Entity {
 		
 		if(this.health > 0) {
 
+			if(gamepadAxes.length > 0) {
+				let leftStick = gamepadAxes[0];
+				player.rotation += leftStick[0] * (player.ship.rotSpeed / 1e3);
+				if(leftStick[1] < -0.5) {
+					this.accelerate();
+				} else if(leftStick[1] > 0.5) {
+					this.deccelerate();
+				}
+			}
+
 			if (((pressedKeys["w"] && this.speed < 5) || (pressedKeys["w"] && pressedKeys["shift"])) && !this.action) {
 				this.accelerate();
 			}
@@ -349,7 +359,7 @@ class Entity {
 				let goToX = goTo.x;
 				let goToY = goTo.y;
 
-				let maxDist = 300;
+				let maxDist = 20;
 
 				let { i } = this.action;
 
@@ -375,10 +385,11 @@ class Entity {
 					if(this.health > 0) this.rotation += relativeHeading / 30;
 				}
 				if(i >= 100 && distance > maxDist * 10) this.accelerate();
-				if(i >= 100 && distance > maxDist && this.speed < (goTo.speed || 9e9)) this.accelerate();
+				if(i >= 100 && distance > maxDist && this.speed < (goTo.speed ?? 9e9)) this.accelerate();
 				
-				if(distance < maxDist + (player.speed * 20) || (this.speed > (goTo.speed || 15) && this.faction === goTo.faction && distance < 5e3)) this.deccelerate();
-				if(distance < maxDist && this.speed > (goTo.speed || 0)) this.deccelerate();
+				if(this.faction === goTo.faction && distance < 100 && this.speed > goTo.speed) this.speed = goTo.speed; 
+				if((distance < maxDist + (this.speed * 20) && goTo.speed < 20)) this.deccelerate();
+				if(distance < maxDist) this.deccelerate();
 				if(distance < maxDist && this.speed <= 0) delete this.action;
 			},
 			loop: () => {

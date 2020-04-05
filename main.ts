@@ -4,13 +4,16 @@ function loop(): void {
 	canvas.height = canvas.scrollHeight;
 	draw();
 	for(let entity of entities) {
-		// if(entity === player) entity.update();
+
+		if(gamepad) scanGamepads();
+
 		let distX = Math.abs(entity.x - player.x);
 		let distY = Math.abs(entity.y - player.y);
 		let distance = Math.sqrt(distX * distX + distY + distY);
 		if(distance < 10e3 || entity.following || entity.followers > 0 || entity.action) {
 			entity.update();
 		}
+
 	}
 	for(let waypoint of playerData.waypoints) {
 		waypoint.update();
@@ -37,13 +40,8 @@ function draw(): void {
 	for(let waypoint of playerData.waypoints) {
 		if(waypoint.target !== player) waypoint.draw();
 	}
-	fps++
 
 }
-
-setInterval(() => {
-	fps = 0;
-}, 1e3);
 
 function findShips(selector: string): (Entity[] | void) {
 	let ships = getShipDistances(player);
