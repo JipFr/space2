@@ -107,7 +107,7 @@ interface MovementAction {
 	main(): void;
 	loop(): void;
 	i: number;
-	goTo: (Entity | { x: number, y: number, speed?: number });
+	goTo: (Entity | { x: number, y: number, speed?: number, faction?: string });
 }
 
 class Entity {
