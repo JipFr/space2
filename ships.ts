@@ -177,11 +177,17 @@ class Entity {
 
 			if(gamepadAxes.length > 0) {
 				let leftStick = gamepadAxes[0];
-				player.rotation += leftStick[0] * (player.ship.rotSpeed / 1e3);
+				if(Math.abs(leftStick[0]) > 0.2) player.rotation += leftStick[0] * (player.ship.rotSpeed / 1e3);
 				if(leftStick[1] < -0.5) {
 					this.accelerate();
 				} else if(leftStick[1] > 0.5) {
 					this.deccelerate();
+				}
+			}
+
+			if(gamepadButtons[0] && gamepadButtons[0].pressed) {
+				for(let weapon of this.weapons) {
+					weapon.fire(this);
 				}
 			}
 
@@ -337,7 +343,7 @@ class Entity {
 
 			console.log("Called for backup");
 
-			let nearbyFriendlies = getShipDistances(this).filter(sh => sh.faction === this.faction && sh !== player).slice(0, 3);
+			let nearbyFriendlies = getShipDistances(this).filter(sh => sh.faction === this.faction && sh !== player && sh.health > 0).slice(0, 3);
 
 			console.log(`${nearbyFriendlies.length} ${this.faction === player.faction ? "friendly" : "hostile"} ships are now approaching a ${this.ship.className} type ship`)
 
@@ -618,7 +624,7 @@ const shipClasses = {
 		className: "God class",
 		faction: "God",
 		maxSpeed: 1e6,
-		accelaration: 1,
+		accelaration: 2,
 		texture: "god.png",
 		startHealth: 1200,
 		rotSpeed: 60,
@@ -746,18 +752,6 @@ function genShips(): void {
 	let init = true;
 	for (let i = 0; i < entityCount; i++) {
 		let allShips = Object.values(shipClasses);
-		
-		let shipChances = {
-			warbird: 0.8,
-			dreadnought: 1,
-			defiant: 1,
-			breen_explorer: 1,
-			breen_warship: 0.1,
-			explorer: 1,
-			nerada: 0.1,
-			cube: 0.02,
-			god: 0.005,
-		}
 
 		let shipChancesArr = Object.entries(shipChances);
 		let smallest = 1;

@@ -1,5 +1,5 @@
 let gamepad;
-const gamepadButtons = {};
+let gamepadButtons = {};
 let gamepadAxes = [];
 
 window.addEventListener("gamepadconnected", (evt: GamepadEvent) => {
@@ -15,6 +15,11 @@ function scanGamepads() {
 	let tmp = Object.assign([], gamepad.axes);
 	while(tmp.length > 1) {
 		gamepadAxes.push(tmp.splice(0, 2));
+	}
+
+	gamepadButtons = {}
+	for(let i = 0; i < gamepad.buttons.length; i++) {
+		gamepadButtons[i] = gamepad.buttons[i];
 	}
 
 }

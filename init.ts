@@ -14,6 +14,18 @@ const maxSpread = 1000e3;
 const entityCount = 100;
 const barWidth = 70;
 
+let shipChances = {
+	warbird: 0.8,
+	dreadnought: 1,
+	defiant: 1,
+	breen_explorer: 0.3,
+	breen_warship: 0.1,
+	explorer: 1,
+	nerada: 0.1,
+	cube: 0.02,
+	god: 0.005,
+}
+
 document.addEventListener("keydown", (evt: KeyboardEvent) => {
 	pressedKeys[evt.key.toLowerCase()] = true;
 });

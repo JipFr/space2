@@ -36,7 +36,7 @@ function draw(): void {
 			entity.draw();
 		}
 	}
-	playerData.drawGUI()
+	playerData.drawGUI();
 	for(let waypoint of playerData.waypoints) {
 		if(waypoint.target !== player) waypoint.draw();
 	}
