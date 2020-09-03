@@ -107,7 +107,7 @@ interface MovementAction {
 	main(): void;
 	loop(): void;
 	i: number;
-	goTo: (Entity | { x: number, y: number, speed?: number, faction?: string });
+	goTo: (Entity | { x: number, y: number, speed?: number, faction?: string, health?: number });
 }
 
 class Entity {
@@ -390,13 +390,22 @@ class Entity {
 					let relativeHeading = normalizeAngle(dirTo - this.rotation);
 					if(this.health > 0) this.rotation += relativeHeading / 30;
 				}
-				if(i >= 100 && distance > maxDist * 10) this.accelerate();
-				if(i >= 100 && distance > maxDist && this.speed < (goTo.speed ?? 9e9)) this.accelerate();
+				if(i >= 100 && distance > maxDist) this.accelerate();
+				if(i >= 100 && distance > (maxDist / 10) && this.speed < (goTo.speed ?? 9e9)) this.accelerate();
 				
 				// if(this.faction === goTo.faction && distance < 100 && this.speed > goTo.speed) this.speed = goTo.speed; 
-				if((distance < maxDist + (this.speed * 20) && goTo.speed < 20)) this.speed -= this.speed / 10;
-				if(distance < maxDist + (this.speed * 20)) this.speed -= this.speed / 10;
-				if(distance < maxDist && (goTo.speed < 5) || this.speed < 0.1) delete this.action;
+				if(distance < (maxDist / 10) + (this.speed * 20) && goTo.speed < 20) {
+					console.log(1);
+					this.speed -= this.speed / 10;
+				}
+				if(distance < maxDist + (this.speed * 20)) {
+					this.speed -= this.speed / 10;
+					console.log(this);
+				}
+				// if(distance < maxDist && (goTo.speed < 5) || this.speed < 0.1 && goTo !== player) delete this.action;
+				
+				
+				if(goTo.health <= 0);
 			},
 			loop: () => {
 				this.action.i++
