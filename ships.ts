@@ -405,7 +405,7 @@ class Entity {
 				// if(distance < maxDist && (goTo.speed < 5) || this.speed < 0.1 && goTo !== player) delete this.action;
 				
 				
-				if(goTo.health <= 0);
+				if(goTo.health <= 0) delete this.action;
 			},
 			loop: () => {
 				this.action.i++
