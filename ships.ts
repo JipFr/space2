@@ -365,7 +365,7 @@ class Entity {
 				let goToX = goTo.x;
 				let goToY = goTo.y;
 
-				let maxDist = 20;
+				let maxDist = 200;
 
 				let { i } = this.action;
 
@@ -393,10 +393,10 @@ class Entity {
 				if(i >= 100 && distance > maxDist * 10) this.accelerate();
 				if(i >= 100 && distance > maxDist && this.speed < (goTo.speed ?? 9e9)) this.accelerate();
 				
-				if(this.faction === goTo.faction && distance < 100 && this.speed > goTo.speed) this.speed = goTo.speed; 
-				if((distance < maxDist + (this.speed * 20) && goTo.speed < 20)) this.deccelerate();
-				if(distance < maxDist) this.deccelerate();
-				if(distance < maxDist && this.speed <= 0) delete this.action;
+				// if(this.faction === goTo.faction && distance < 100 && this.speed > goTo.speed) this.speed = goTo.speed; 
+				if((distance < maxDist + (this.speed * 20) && goTo.speed < 20)) this.speed -= this.speed / 10;
+				if(distance < maxDist + (this.speed * 20)) this.speed -= this.speed / 10;
+				if(distance < maxDist && (goTo.speed < 5) || this.speed < 0.1) delete this.action;
 			},
 			loop: () => {
 				this.action.i++
