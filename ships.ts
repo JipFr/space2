@@ -411,7 +411,7 @@ class Entity {
 				}
 				
 				
-				if(goTo.health <= 0 || (this === player && goTo.speed <= 1 && this.speed <= 1)) delete this.action;
+				if(goTo.health <= 0 || (this === player && goTo.speed <= 0.01 && this.speed <= 0.01)) delete this.action;
 			},
 			loop: () => {
 				this.action.i++
