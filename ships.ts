@@ -131,6 +131,8 @@ class Entity {
 	action?: MovementAction;
 	calledForBackup?: boolean;
 	following?: Entity;
+	backupCircleRadius?: number;
+	backupPulses: number;
 
 	constructor({
 		ship,
@@ -217,6 +219,12 @@ class Entity {
 					if(ship !== player) ship.moveTo(player);
 				});
 			}
+			if(pressedKeys["7"] && !this.action) {
+				let ships = (findShips(this.faction) || []).filter(s => s.following !== this);
+				this.moveTo(ships[0]);
+			}
+
+
 			if(pressedKeys["c"] && this.action) {
 				delete this.action;
 				delete this.following;
@@ -400,12 +408,10 @@ class Entity {
 				}
 				if(distance < maxDist + (this.speed * 20)) {
 					this.speed -= this.speed / 10;
-					console.log(this);
 				}
-				// if(distance < maxDist && (goTo.speed < 5) || this.speed < 0.1 && goTo !== player) delete this.action;
 				
 				
-				if(goTo.health <= 0) delete this.action;
+				if(goTo.health <= 0 || (this === player && goTo.speed <= 1 && this.speed <= 1)) delete this.action;
 			},
 			loop: () => {
 				this.action.i++
@@ -874,6 +880,32 @@ class Waypoint {
 			}
 
 			ctx.fillRect(-cubeSize/4, -cubeSize/4, cubeSize/2, cubeSize/2);
+
+			// console.log(this.target);
+			// console.log(this.target.timesKilled)
+			if(this.target.timesKilled === 0 && this.target.calledForBackup && (this.target.backupPulses ?? 0) < 3) {
+
+				if(!this.target.backupCircleRadius) {
+					this.target.backupPulses = 0;
+					this.target.backupCircleRadius = cubeSize;
+				}
+				this.target.backupCircleRadius += 0.2;
+
+				ctx.beginPath();
+
+
+				ctx.arc(0, 0, this.target.backupCircleRadius, 0, Math.PI * 2);
+
+				let offsetThing = (this.target.backupCircleRadius - cubeSize) / 20;
+				if(1 - offsetThing < -1) {
+					this.target.backupPulses++
+					this.target.backupCircleRadius = cubeSize;
+				}
+
+				ctx.globalAlpha = Math.max(1 - offsetThing, 0);
+				ctx.stroke();
+			}
+
 		} else {
 			ctx.fillStyle = this.target.health > 0 ? "red" : "gray";
 			ctx.fillRect(-cubeSize/2, -cubeSize/2, cubeSize, cubeSize);
@@ -914,17 +946,16 @@ class PlayerData {
 		ctx.arc(0, 0, this.maxRadius, 0, Math.PI * 2);
 		ctx.stroke();
 
-		if (playerData.waypoints.length <= 2 || true) {
-			ctx.rotate(player.rotation);
-			ctx.beginPath();
+		// Blue line
+		ctx.rotate(player.rotation);
+		ctx.beginPath();
 
-			ctx.moveTo(playerData.minRadius, 0);
-			ctx.lineTo(playerData.maxRadius, 0);
+		ctx.moveTo(playerData.minRadius, 0);
+		ctx.lineTo(playerData.maxRadius, 0);
 
-			ctx.globalAlpha = 1;
-			ctx.strokeStyle = "aqua";
-			ctx.stroke();
-		}
+		ctx.globalAlpha = 1;
+		ctx.strokeStyle = "aqua";
+		ctx.stroke();
 
 		ctx.restore();
 
