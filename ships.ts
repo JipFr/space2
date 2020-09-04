@@ -375,8 +375,6 @@ class Entity {
 				let goToX = goTo.x;
 				let goToY = goTo.y;
 
-				let maxDist = 200;
-
 				let { i } = this.action;
 
 				let distanceX = this.x - goToX;
@@ -407,7 +405,7 @@ class Entity {
 				if(distance < (maxDist / 10) + (this.speed * 20) && goTo.speed < 20) {
 					this.speed -= this.speed / 10;
 				}
-				if(distance < maxDist + (this.speed * 20)) {
+				if(distance < maxDist + ((this.speed - goTo.speed) * 20)) {
 					this.speed -= this.speed / 10;
 				}
 				
@@ -904,6 +902,7 @@ class Waypoint {
 				}
 
 				ctx.globalAlpha = Math.max(1 - offsetThing, 0);
+				ctx.strokeStyle = this.target.faction === player.faction ? "green": "red";
 				ctx.stroke();
 			}
 

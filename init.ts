@@ -1,4 +1,6 @@
 
+
+let maxDist = 200;
 const canvas: HTMLCanvasElement = document.querySelector("canvas.main");
 const ctx = canvas.getContext("2d");
 let pressedKeys = {}
