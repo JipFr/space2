@@ -77,8 +77,6 @@ class Phaser {
 					// Give points to responsible party
 					let pointsTo = (firing.following ?? {}).faction === firing.faction ? firing.following : firing;
 					scoreboard.addPoints(pointsTo, closest);
-				} else {
-					console.log(closest.timesKilled);
 				}
 			}
 			this.usage++
@@ -220,8 +218,15 @@ class Entity {
 				});
 			}
 			if(pressedKeys["7"] && !this.action) {
-				let ships = (findShips(this.faction) || []).filter(s => s.following !== this && s.health > 1);
+				let ships = (findShips(this.faction) || []).filter(s => s.following !== this);
 				this.moveTo(ships[0]);
+			}
+			if(pressedKeys["6"]) {
+				entities.forEach(e => {
+					delete e.following;
+					delete e.action;
+					e.moveTo({x: 0, y: 0});
+				});
 			}
 
 
@@ -239,7 +244,7 @@ class Entity {
 	}
 
 	protected updateNonControllable(): void {
-		let ships = getShipDistances(this).filter(sh => sh.distance < 3e5 && sh.health > 0);
+		let ships = getShipDistances(this).filter(sh => sh.distance < 9e5 && sh.health > 0);
 		if(ships.length > 0) {
 
 			if((!this.following ||
@@ -349,11 +354,9 @@ class Entity {
 	public callForBackup() {
 		if(!this.calledForBackup) {
 
-			console.log("Called for backup");
-
 			let nearbyFriendlies = getShipDistances(this).filter(sh => sh.faction === this.faction && sh !== player && sh.health > 0).slice(0, 3);
 
-			console.log(`${nearbyFriendlies.length} ${this.faction === player.faction ? "friendly" : "hostile"} ships are now approaching a ${this.ship.className} type ship`)
+			console.log(`${nearbyFriendlies.length} ${this.faction === player.faction ? "friendly" : "hostile"} ships are now approaching a ${this === player ? "the player" : this.ship.className + " type shit"}`)
 
 			for(let friendly of nearbyFriendlies) {
 				friendly.following = this;
@@ -403,7 +406,6 @@ class Entity {
 				
 				// if(this.faction === goTo.faction && distance < 100 && this.speed > goTo.speed) this.speed = goTo.speed; 
 				if(distance < (maxDist / 10) + (this.speed * 20) && goTo.speed < 20) {
-					console.log(1);
 					this.speed -= this.speed / 10;
 				}
 				if(distance < maxDist + (this.speed * 20)) {
@@ -411,7 +413,7 @@ class Entity {
 				}
 				
 				
-				if(goTo.health <= 0 || (this === player && goTo.speed <= 0.01 && this.speed <= 0.01)) delete this.action;
+				if((goTo.health <= 0 && goTo.faction !== this.faction) || (this === player && goTo.speed <= 0.01 && this.speed <= 0.01)) delete this.action;
 			},
 			loop: () => {
 				this.action.i++
