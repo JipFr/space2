@@ -275,6 +275,10 @@ class Entity {
 			this.updateNonControllable();
 		}
 
+		if(this.speed < 0.01) {
+			this.speed = 0;
+		}
+
 		if(this.isDead && this.health > 0) {
 			this.isDead = false;
 		}
@@ -405,7 +409,7 @@ class Entity {
 				if(distance < (maxDist / 10) + (this.speed * 20) && goTo.speed < 20) {
 					this.speed -= this.speed / 10;
 				}
-				if(distance < maxDist + ((this.speed - goTo.speed) * 20)) {
+				if(distance < maxDist + (Math.abs(this.speed - goTo.speed) * 20)) {
 					this.speed -= this.speed / 10;
 				}
 				
@@ -595,7 +599,7 @@ const shipClasses = {
 		],
 		weapons: [
 			new Phaser({
-				dps: 20,
+				dps: 90,
 				color: "blue",
 				maxDistance: 1000,
 				shortcut: " ",
@@ -896,12 +900,13 @@ class Waypoint {
 				ctx.arc(0, 0, this.target.backupCircleRadius, 0, Math.PI * 2);
 
 				let offsetThing = (this.target.backupCircleRadius - cubeSize) / 20;
-				if(1 - offsetThing < -1) {
+				let alpha = 1 - offsetThing;
+				if(alpha < -1) {
 					this.target.backupPulses++
 					this.target.backupCircleRadius = cubeSize;
 				}
 
-				ctx.globalAlpha = Math.max(1 - offsetThing, 0);
+				ctx.globalAlpha = Math.max(alpha, 0);
 				ctx.strokeStyle = this.target.faction === player.faction ? "green": "red";
 				ctx.stroke();
 			}
