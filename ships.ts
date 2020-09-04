@@ -218,8 +218,7 @@ class Entity {
 				});
 			}
 			if(pressedKeys["7"] && !this.action) {
-				let ships = (findShips(this.faction) || []).filter(s => s.following !== this);
-				this.moveTo(ships[0]);
+				toClosestFriendly(this);
 			}
 			if(pressedKeys["6"]) {
 				entities.forEach(e => {
@@ -1001,4 +1000,9 @@ class PlayerData {
 
 
 
+}
+
+function toClosestFriendly(ship) {
+	let ships = (findShips(ship.faction) || []).filter(s => s.following !== ship);
+	ship.moveTo(ships[0]);
 }
