@@ -878,7 +878,7 @@ class Waypoint {
 			}
 			if (typeof this.target.health !== "undefined") {
 				if (this.target.health <= 0) {
-					ctx.fillStyle = "gray";
+					ctx.fillStyle = "transparent";
 				}
 			}
 
