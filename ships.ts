@@ -220,7 +220,7 @@ class Entity {
 				});
 			}
 			if(pressedKeys["7"] && !this.action) {
-				let ships = (findShips(this.faction) || []).filter(s => s.following !== this);
+				let ships = (findShips(this.faction) || []).filter(s => s.following !== this && s.health > 1);
 				this.moveTo(ships[0]);
 			}
 
