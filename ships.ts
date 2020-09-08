@@ -105,7 +105,7 @@ interface MovementAction {
 	main(): void;
 	loop(): void;
 	i: number;
-	goTo: (Entity | { x: number, y: number, speed?: number, faction?: string, health?: number });
+	goTo: (Entity | { x: number, y: number, speed?: number, faction?: string, health?: number, isShip?: false });
 }
 
 class Entity {
@@ -131,6 +131,7 @@ class Entity {
 	following?: Entity;
 	backupCircleRadius?: number;
 	backupPulses: number;
+	isShip: true;
 
 	constructor({
 		ship,
@@ -139,9 +140,10 @@ class Entity {
 		controllable = false,
 		x = 0,
 		y = 0,
-		rotation = Math.random() * (Math.PI * 2),
+		rotation = (Math.random() * (Math.PI * 2)) - Math.PI,
 		speed = 5
 	}) {
+		this.isShip = true;
 		this.ship = ship;
 		this.ship.image = new Image();
 		this.ship.image.src = `assets/ships/${this.ship.texture}`;
@@ -166,10 +168,13 @@ class Entity {
 	protected updateControllable(): void {
 		if(this === player && this.health <= 0) {
 			let ships = getShipDistances();
-			let alternative: (Entity | void) = ships.find(ent => ent.controllable && ent.health > 0);
+			// let alternative: (Entity | void) = ships.find(ent => ent.controllable && ent.health > 0);
+			let alternative: (Entity | void) = ships.find(ent => ent.health > 0);
 			if(alternative) {
 				alert("Switched bodies");
+				player.controllable = false;
 				player = alternative;
+				alternative.controllable = true;
 			}
 		}
 		
@@ -217,10 +222,14 @@ class Entity {
 					if(ship !== player) ship.moveTo(player);
 				});
 			}
-			if(pressedKeys["7"] && !this.action) {
+			if(pressedKeys["7"]) {
 				toClosestFriendly(this);
 			}
 			if(pressedKeys["6"]) {
+				let ships = entities.filter(s => s.faction !== this.faction && s.health > 10);
+				if(ships[0]) this.moveTo(ships[0]);
+			}
+			if(pressedKeys["1"]) {
 				entities.forEach(e => {
 					delete e.following;
 					delete e.action;
@@ -386,9 +395,13 @@ class Entity {
 				let distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
 
 				this.distance = distance;
+				goTo.speed = goTo.speed ?? 0;
+
+				if(!goTo.isShip) goTo.isShip = false;
 
 				if(i >= 0 && distance > maxDist) {
-					let dirTo = Math.atan2(goToY - this.y, goToX - this.x);
+					let dirTo = distance < Math.min(maxDist * 2, 400) && goTo.isShip ? goTo.rotation : Math.atan2(goToY - this.y, goToX - this.x);
+					
 					function normalizeAngle(a: number) {
 						// No idea
 						let totalRange = Math.PI * 2;
@@ -399,17 +412,22 @@ class Entity {
 						}
 						return a;
 					}
+
 					let relativeHeading = normalizeAngle(dirTo - this.rotation);
-					if(this.health > 0) this.rotation += relativeHeading / 30;
+					if(this.health > 0) {
+						this.rotation += relativeHeading / 30;
+						this.correctRotation();
+					}
+					
 				}
 				if(i >= 100 && distance > maxDist) this.accelerate();
-				if(i >= 100 && distance > (maxDist / 10) && this.speed < (goTo.speed ?? 9e9)) this.accelerate();
+				// if(i >= 100 && distance > (maxDist / 10) && this.speed < (goTo.speed ?? 0)) this.accelerate();
 				
 				// if(this.faction === goTo.faction && distance < 100 && this.speed > goTo.speed) this.speed = goTo.speed; 
-				if(distance < (maxDist / 10) + (this.speed * 20) && goTo.speed < 20) {
+				if(distance < (maxDist / 10) + (this.speed * 20) && (goTo.speed ?? 0) < 20) {
 					this.speed -= this.speed / 10;
 				}
-				if(distance < maxDist + (Math.abs(this.speed - goTo.speed) * 20)) {
+				if(distance < maxDist + (Math.abs(this.speed - goTo.speed ?? 0) * 20)) {
 					this.speed -= this.speed / 10;
 				}
 				
@@ -443,9 +461,16 @@ class Entity {
 
 	public turnLeft() {
 		this.rotation -= this.ship.rotSpeed / 1e3;
+		this.correctRotation();
 	}
 	public turnRight() {
 		this.rotation += this.ship.rotSpeed / 1e3;
+		this.correctRotation();
+	}
+
+	public correctRotation() {
+		if(this.rotation < -Math.PI) this.rotation = Math.PI;
+		if(this.rotation > Math.PI) this.rotation = -Math.PI;
 	}
 
 	public draw(): void {
@@ -800,8 +825,7 @@ function genShips(): void {
 			faction: randomShip.faction,
 			controllable: init,
 			x: init ? 0 : randomCoords(maxSpread),
-			y: init ? 0 : randomCoords(maxSpread),
-			rotation: init ? 0 : undefined
+			y: init ? 0 : randomCoords(maxSpread)
 		}));
 		if (init) init = false;
 	}
@@ -1007,6 +1031,6 @@ class PlayerData {
 }
 
 function toClosestFriendly(ship) {
-	let ships = (findShips(ship.faction) || []).filter(s => s.following !== ship);
-	ship.moveTo(ships[0]);
+	let ships = (findShips(ship.faction) || []).filter(s => s.following !== ship || s.health < 20);
+	if(ships[0]) ship.moveTo(ships[0]);
 }
