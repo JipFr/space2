@@ -226,7 +226,7 @@ class Entity {
 				toClosestFriendly(this);
 			}
 			if(pressedKeys["6"]) {
-				let ships = entities.filter(s => s.faction !== this.faction && s.health > 10);
+				let ships = getShipDistances(this).filter(s => s.faction !== this.faction && s.health > 10);
 				if(ships[0]) this.moveTo(ships[0]);
 			}
 			if(pressedKeys["1"]) {
