@@ -22,3 +22,5 @@ Little space game, shoot everyone!!!!!
 | Space     | Fire at nearby enemy ship   |
 | 0         | Plot a course to 0,0        |
 | c         | Cancel plotted course       |
+| 7         | To closest friendly         |
+| 6         | To closest enemy            |
