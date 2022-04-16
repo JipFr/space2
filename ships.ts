@@ -814,7 +814,9 @@ function genShips(): void {
 		let randomShip = shipClasses[shipNames[Math.floor(Math.random() * shipNames.length)]];
 		
 		// Force ship type
-		if(borgMode && init) {
+		if(init && !borgMode) {
+			randomShip = shipClasses["explorer"]
+		} else if(borgMode && init) {
 			randomShip = shipClasses["cube"];
 		} else if(borgMode && !init) {
 			randomShip = shipClasses["nerada"]

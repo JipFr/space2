@@ -57,7 +57,7 @@ function init(): void {
 
 	playerData = new PlayerData();
 
-	let cube = entities.find(f => f.faction ==="Borg");
+	// let cube = entities.find(f => f.faction ==="Borg");
 	// player = cube;
 
 	// Temporary

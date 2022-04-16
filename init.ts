@@ -24,7 +24,7 @@ let shipChances = {
 	breen_warship: 0.1,
 	explorer: 1,
 	nerada: 0.1,
-	cube: 0.02,
+	cube: 0.07,
 	god: 0.005,
 }
 
