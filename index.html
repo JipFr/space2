@@ -3,8 +3,55 @@
 	<head>
 		<title>Space2</title>
 		<link rel="stylesheet" href="main.css">
+		<meta name="apple-mobile-web-app-title" content="space2">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="viewport" content="width=device-width, initial-scale=0.7, maximum-scale=0.7, minimum-scale=0.7, user-scalable=no, minimal-ui, viewport-fit=cover">
 	</head>
 	<body>
+
+		<div class="controls-left">
+			<button ontouchstart="location.reload()">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rotate-cw"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+			</button>
+			<button ontouchstart="(() => {pressedKeys[' '] = true; pressedKeys['k'] = true})()" ontouchend="(() => {pressedKeys[' '] = false; pressedKeys['k'] = false})()">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-zap"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+			</button>
+			<button hide></button>
+			<button ontouchstart="(() => {pressedKeys['w'] = true; pressedKeys['shift'] = true})()" ontouchend="(() => {pressedKeys['w'] = false; pressedKeys['shift'] = false})()">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up"><polyline points="17 11 12 6 7 11"></polyline><polyline points="17 18 12 13 7 18"></polyline></svg>
+			</button>
+			<button ontouchstart="(() => {pressedKeys['w'] = true })()" ontouchend="(() => {pressedKeys['w'] = false })()">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-up"><polyline points="18 15 12 9 6 15"></polyline></svg>
+			</button>
+			<button ontouchstart="(() => {pressedKeys['s'] = true })()" ontouchend="(() => {pressedKeys['s'] = false })()">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-down"><polyline points="6 9 12 15 18 9"></polyline></svg>
+			</button>
+		</div>
+
+		<div class="controls-right">
+			<div>
+				<button class="friendly" ontouchstart="(() => {pressedKeys['7'] = true })()" ontouchend="(() => {pressedKeys['7'] = false })()">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-navigation"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
+				</button>
+				<button class="hostile" ontouchstart="(() => {pressedKeys['6'] = true })()" ontouchend="(() => {pressedKeys['6'] = false })()">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-navigation"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
+				</button>
+			</div>
+			<div>
+				<button class="wide" ontouchstart="(() => {pressedKeys['c'] = true })()" ontouchend="(() => {pressedKeys['c'] = false })()">
+					Cancel route
+				</button>
+			</div>
+			<div>
+				<button class="tall" ontouchstart="(() => {pressedKeys['a'] = true })()" ontouchend="(() => {pressedKeys['a'] = false })()">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-left"><polyline points="15 18 9 12 15 6"></polyline></svg>
+				</button>
+				<button class="tall" ontouchstart="(() => {pressedKeys['d'] = true })()" ontouchend="(() => {pressedKeys['d'] = false })()">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"></polyline></svg>
+				</button>
+			</div>
+		</div>
+
 		<canvas class="main"></canvas>
 		<script src="dist/init.js"></script>
 		<script src="dist/ships.js"></script>

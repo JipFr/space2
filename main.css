@@ -1,3 +1,7 @@
+html, body {
+	user-select: none;
+	-webkit-user-select: none;
+}
 body {
 	margin: 0;
 	background: black;
@@ -7,4 +11,67 @@ canvas {
 	display: block;
 	width: 100%;
 	height: 100vh;
+}
+
+.controls-left {
+	position: absolute;
+	bottom: calc(10px + env(safe-area-inset-bottom));
+	left: calc(10px + env(safe-area-inset-left));
+}
+
+.controls-right {
+	position: absolute;
+	bottom: calc(10px + env(safe-area-inset-bottom));
+	right: calc(10px + env(safe-area-inset-right));
+}
+
+.controls-right > div {
+	display: flex;
+}
+
+@media (hover: hover) {
+	.controls-left, .controls-right {
+		display: none;
+	}
+}
+
+button {
+	width: 6vmax;
+	height: 6vmax;
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 6px;
+	margin: 3px;
+	color: white;
+	border: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-size: 1rem;
+}
+button:active {
+	background: black;
+	box-shadow: 0 0 3px white;
+}
+button.tall {
+	height: calc(6vmax + 6vmax + 3px)
+}
+button.wide {
+	width: 100%
+}
+button svg {
+	width: 80%;
+	height: 80%;
+	display: block;
+}
+
+button.friendly {
+	color: rgb(0, 82, 0);
+}
+button.hostile {
+	color: #7f0000;
+}
+
+button[hide] {
+	opacity: 0;
+	pointer-events:none;
 }
