@@ -2,25 +2,30 @@
 function loop(): void {
 	canvas.width = canvas.scrollWidth;
 	canvas.height = canvas.scrollHeight;
-	draw();
-	for(let entity of entities) {
 
-		if(gamepad) scanGamepads();
-
-		let distX = Math.abs(entity.x - player.x);
-		let distY = Math.abs(entity.y - player.y);
-		let distance = Math.sqrt(distX * distX + distY + distY);
-		if(distance < 10e3 || entity.following || entity.followers > 0 || entity.action) {
-			entity.update();
+	if(![...document.querySelector('.paused').classList].includes('toggled')) {
+		for(let entity of entities) {
+	
+			if(gamepad) scanGamepads();
+	
+			let distX = Math.abs(entity.x - player.x);
+			let distY = Math.abs(entity.y - player.y);
+			let distance = Math.sqrt(distX * distX + distY + distY);
+			if(distance < 10e3 || entity.following || entity.followers > 0 || entity.action) {
+				entity.update();
+			}
+	
 		}
+		for(let waypoint of playerData.waypoints) {
+			waypoint.update();
+		}
+		for(let stellarObject of objects) {
+			stellarObject.update()
+		}
+	}
 
-	}
-	for(let waypoint of playerData.waypoints) {
-		waypoint.update();
-	}
-	for(let stellarObject of objects) {
-		stellarObject.update()
-	}
+
+	draw();
 	requestAnimationFrame(loop);
 }
 

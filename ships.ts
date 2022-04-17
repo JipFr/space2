@@ -22,7 +22,7 @@ class Phaser {
 	}) {
 		this.color = color;
 		this.dps = dps;
-		this.maxDistance = maxDistance / (scale / 10);
+		this.maxDistance = maxDistance / 1.2;
 		this.shortcut = shortcut;
 		this.position = position;
 		this.usage = 0;
@@ -566,50 +566,50 @@ const shipClasses = {
 			})
 		]
 	},
-	"cube": {
-		className: "Borg cube",
-		faction: "Borg",
-		maxSpeed: 900,
-		texture: "borg.png",
-		startHealth: 2e3,
-		rotSpeed: 20,
-		imageScale: 10,
-		accelaration: 5,
-		weapons: [
-			new Phaser({
-				dps: 20,
-				color: "green",
-				maxDistance: 3000,
-				shortcut: " ",
-				position: [Math.PI, 1e3],
-				maxUsage: 1e3
-			}),
-			new Phaser({
-				dps: 20,
-				color: "green",
-				maxDistance: 3000,
-				shortcut: " ",
-				position: [0, 1e3],
-				maxUsage: 1e3
-			}),
-			new Phaser({
-				dps: 20,
-				color: "green",
-				maxDistance: 3000,
-				shortcut: " ",
-				position: [Math.PI/2, 1e3],
-				maxUsage: 1e3
-			}),
-			new Phaser({
-				dps: 20,
-				color: "green",
-				maxDistance: 3000,
-				shortcut: " ",
-				position: [-Math.PI/2, 1e3],
-				maxUsage: 1e3
-			})
-		]
-	},
+	// "cube": {
+	// 	className: "Borg cube",
+	// 	faction: "Borg",
+	// 	maxSpeed: 900,
+	// 	texture: "borg.png",
+	// 	startHealth: 2e3,
+	// 	rotSpeed: 20,
+	// 	imageScale: 10,
+	// 	accelaration: 5,
+	// 	weapons: [
+	// 		new Phaser({
+	// 			dps: 20,
+	// 			color: "green",
+	// 			maxDistance: 3000,
+	// 			shortcut: " ",
+	// 			position: [Math.PI, 1e3],
+	// 			maxUsage: 1e3
+	// 		}),
+	// 		new Phaser({
+	// 			dps: 20,
+	// 			color: "green",
+	// 			maxDistance: 3000,
+	// 			shortcut: " ",
+	// 			position: [0, 1e3],
+	// 			maxUsage: 1e3
+	// 		}),
+	// 		new Phaser({
+	// 			dps: 20,
+	// 			color: "green",
+	// 			maxDistance: 3000,
+	// 			shortcut: " ",
+	// 			position: [Math.PI/2, 1e3],
+	// 			maxUsage: 1e3
+	// 		}),
+	// 		new Phaser({
+	// 			dps: 20,
+	// 			color: "green",
+	// 			maxDistance: 3000,
+	// 			shortcut: " ",
+	// 			position: [-Math.PI/2, 1e3],
+	// 			maxUsage: 1e3
+	// 		})
+	// 	]
+	// },
 	"defiant": {
 		className: "Defiant",
 		faction: "Starfleet",
@@ -632,171 +632,171 @@ const shipClasses = {
 			})
 		]
 	},
-	"nerada": {
-		className: "Nerada",
-		faction: "Romulan",
-		maxSpeed: 90,
-		texture: "nerada.png",
-		startHealth: 600,
-		rotSpeed: 10,
-		imageScale: 0.6,
-		accelaration: 0.6,
-		trailExits: [
-			[0, 20]
-		],
-		weapons: [
-			new Phaser({
-				dps: 900,
-				color: "white",
-				maxDistance: 500,
-				shortcut: "k",
-				maxUsage: 4,
-				weaponCooldownTime: 300,
-				position: [-Math.PI-0.2, 48]
-			}),
-			new Phaser({
-				dps: 40,
-				color: "white",
-				maxDistance: 1000,
-				shortcut: " ",
-				position: [-Math.PI+0.2, 48]
-			})
-		]
-	},
-	"god": {
-		className: "God class",
-		faction: "God",
-		maxSpeed: 1e6,
-		accelaration: 2,
-		texture: "god.png",
-		startHealth: 1200,
-		rotSpeed: 60,
-		imageScale: 1,
-		noShake: true,
-		trailExits: [
-			[Math.PI/2, 85],
-			[-Math.PI/2, 85],
-			[0, 100]
-		],
-		weapons: [
-			new Phaser({
-				dps: 900,
-				color: "red",
-				maxDistance: 500,
-				shortcut: "k",
-				maxUsage: 4,
-				weaponCooldownTime: 0,
-				position: [-Math.PI, 30]
-			}),
-			new Phaser({
-				dps: 40,
-				color: "white",
-				maxDistance: 1000,
-				shortcut: " ",
-				position: [-Math.PI+0.2, 48]
-			}),
-			new Phaser({
-				dps: 40,
-				color: "white",
-				maxDistance: 1000,
-				shortcut: " ",
-				position: [-Math.PI-0.2, 48]
-			})
-		]
-	},
-	"carrier": {
-		className: "Carrier class",
-		faction: "Starfleet",
-		maxSpeed: 30,
-		accelaration: 0.1,
-		texture: "carrier.png",
-		startHealth: 4e3,
-		rotSpeed: 5,
-		imageScale: 10,
-		noShake: true,
-		trailExits: [
-			[0.6, 760],
-			[0.7, 790],
-			[0.8, 820],
-			[-0.6, 760],
-			[-0.7, 790],
-			[-0.8, 820]
-		],
-		weapons: [
-			new Phaser({
-				dps: 20,
-				color: "red",
-				maxDistance: 3000,
-				shortcut: " ",
-				maxUsage: 500,
-				weaponCooldownTime: 500,
-				position: [-Math.PI + 0.44, 940]
-			}),
-			new Phaser({
-				dps: 20,
-				color: "pink",
-				maxDistance: 3000,
-				shortcut: " ",
-				maxUsage: 100,
-				weaponCooldownTime: 500,
-				position: [-Math.PI + 1.05, 1060]
-			}),
-			new Phaser({
-				dps: 20,
-				color: "pink",
-				maxDistance: 3000,
-				shortcut: " ",
-				maxUsage: 100,
-				weaponCooldownTime: 500,
-				position: [-Math.PI + 1.25, 1200]
-			}),
-			new Phaser({
-				dps: 20,
-				color: "pink",
-				maxDistance: 3000,
-				shortcut: " ",
-				maxUsage: 100,
-				weaponCooldownTime: 500,
-				position: [-Math.PI + 1.5, 1340]
-			}),
-			new Phaser({
-				dps: 20,
-				color: "red",
-				maxDistance: 3000,
-				shortcut: " ",
-				maxUsage: 500,
-				weaponCooldownTime: 500,
-				position: [-(-Math.PI + 0.44), 940]
-			}),
-			new Phaser({
-				dps: 20,
-				color: "pink",
-				maxDistance: 3000,
-				shortcut: " ",
-				maxUsage: 100,
-				weaponCooldownTime: 500,
-				position: [-(-Math.PI + 1.05), 1060]
-			}),
-			new Phaser({
-				dps: 20,
-				color: "pink",
-				maxDistance: 3000,
-				shortcut: " ",
-				maxUsage: 100,
-				weaponCooldownTime: 500,
-				position: [-(-Math.PI + 1.25), 1200]
-			}),
-			new Phaser({
-				dps: 20,
-				color: "pink",
-				maxDistance: 3000,
-				shortcut: " ",
-				maxUsage: 100,
-				weaponCooldownTime: 500,
-				position: [-(-Math.PI + 1.5), 1340]
-			}),
-		]
-	},
+	// "nerada": {
+	// 	className: "Nerada",
+	// 	faction: "Romulan",
+	// 	maxSpeed: 90,
+	// 	texture: "nerada.png",
+	// 	startHealth: 600,
+	// 	rotSpeed: 10,
+	// 	imageScale: 0.6,
+	// 	accelaration: 0.6,
+	// 	trailExits: [
+	// 		[0, 20]
+	// 	],
+	// 	weapons: [
+	// 		new Phaser({
+	// 			dps: 900,
+	// 			color: "white",
+	// 			maxDistance: 500,
+	// 			shortcut: "k",
+	// 			maxUsage: 4,
+	// 			weaponCooldownTime: 300,
+	// 			position: [-Math.PI-0.2, 48]
+	// 		}),
+	// 		new Phaser({
+	// 			dps: 40,
+	// 			color: "white",
+	// 			maxDistance: 1000,
+	// 			shortcut: " ",
+	// 			position: [-Math.PI+0.2, 48]
+	// 		})
+	// 	]
+	// },
+	// "god": {
+	// 	className: "God class",
+	// 	faction: "God",
+	// 	maxSpeed: 1e6,
+	// 	accelaration: 2,
+	// 	texture: "god.png",
+	// 	startHealth: 1200,
+	// 	rotSpeed: 60,
+	// 	imageScale: 1,
+	// 	noShake: true,
+	// 	trailExits: [
+	// 		[Math.PI/2, 85],
+	// 		[-Math.PI/2, 85],
+	// 		[0, 100]
+	// 	],
+	// 	weapons: [
+	// 		new Phaser({
+	// 			dps: 900,
+	// 			color: "red",
+	// 			maxDistance: 500,
+	// 			shortcut: "k",
+	// 			maxUsage: 4,
+	// 			weaponCooldownTime: 0,
+	// 			position: [-Math.PI, 30]
+	// 		}),
+	// 		new Phaser({
+	// 			dps: 40,
+	// 			color: "white",
+	// 			maxDistance: 1000,
+	// 			shortcut: " ",
+	// 			position: [-Math.PI+0.2, 48]
+	// 		}),
+	// 		new Phaser({
+	// 			dps: 40,
+	// 			color: "white",
+	// 			maxDistance: 1000,
+	// 			shortcut: " ",
+	// 			position: [-Math.PI-0.2, 48]
+	// 		})
+	// 	]
+	// },
+	// "carrier": {
+	// 	className: "Carrier class",
+	// 	faction: "Starfleet",
+	// 	maxSpeed: 30,
+	// 	accelaration: 0.1,
+	// 	texture: "carrier.png",
+	// 	startHealth: 4e3,
+	// 	rotSpeed: 5,
+	// 	imageScale: 10,
+	// 	noShake: true,
+	// 	trailExits: [
+	// 		[0.6, 760],
+	// 		[0.7, 790],
+	// 		[0.8, 820],
+	// 		[-0.6, 760],
+	// 		[-0.7, 790],
+	// 		[-0.8, 820]
+	// 	],
+	// 	weapons: [
+	// 		new Phaser({
+	// 			dps: 20,
+	// 			color: "red",
+	// 			maxDistance: 3000,
+	// 			shortcut: " ",
+	// 			maxUsage: 500,
+	// 			weaponCooldownTime: 500,
+	// 			position: [-Math.PI + 0.44, 940]
+	// 		}),
+	// 		new Phaser({
+	// 			dps: 20,
+	// 			color: "pink",
+	// 			maxDistance: 3000,
+	// 			shortcut: " ",
+	// 			maxUsage: 100,
+	// 			weaponCooldownTime: 500,
+	// 			position: [-Math.PI + 1.05, 1060]
+	// 		}),
+	// 		new Phaser({
+	// 			dps: 20,
+	// 			color: "pink",
+	// 			maxDistance: 3000,
+	// 			shortcut: " ",
+	// 			maxUsage: 100,
+	// 			weaponCooldownTime: 500,
+	// 			position: [-Math.PI + 1.25, 1200]
+	// 		}),
+	// 		new Phaser({
+	// 			dps: 20,
+	// 			color: "pink",
+	// 			maxDistance: 3000,
+	// 			shortcut: " ",
+	// 			maxUsage: 100,
+	// 			weaponCooldownTime: 500,
+	// 			position: [-Math.PI + 1.5, 1340]
+	// 		}),
+	// 		new Phaser({
+	// 			dps: 20,
+	// 			color: "red",
+	// 			maxDistance: 3000,
+	// 			shortcut: " ",
+	// 			maxUsage: 500,
+	// 			weaponCooldownTime: 500,
+	// 			position: [-(-Math.PI + 0.44), 940]
+	// 		}),
+	// 		new Phaser({
+	// 			dps: 20,
+	// 			color: "pink",
+	// 			maxDistance: 3000,
+	// 			shortcut: " ",
+	// 			maxUsage: 100,
+	// 			weaponCooldownTime: 500,
+	// 			position: [-(-Math.PI + 1.05), 1060]
+	// 		}),
+	// 		new Phaser({
+	// 			dps: 20,
+	// 			color: "pink",
+	// 			maxDistance: 3000,
+	// 			shortcut: " ",
+	// 			maxUsage: 100,
+	// 			weaponCooldownTime: 500,
+	// 			position: [-(-Math.PI + 1.25), 1200]
+	// 		}),
+	// 		new Phaser({
+	// 			dps: 20,
+	// 			color: "pink",
+	// 			maxDistance: 3000,
+	// 			shortcut: " ",
+	// 			maxUsage: 100,
+	// 			weaponCooldownTime: 500,
+	// 			position: [-(-Math.PI + 1.5), 1340]
+	// 		}),
+	// 	]
+	// },
 	"explorer": {
 		className: "Explorer",
 		faction: "Starfleet",

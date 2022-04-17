@@ -73,7 +73,7 @@ class StellarObject {
 			}
 		}
 
-		this.color = this.faction === player.faction ? 'green' : '#530000'
+		this.color = this.faction === player.faction ? '#0f4611' : '#530000'
 
 		for(let child of this.children) {
 			child.rot += (child.distance / 5e3) / 100;
@@ -108,8 +108,8 @@ class StellarObject {
 		ctx.fillStyle = this.color
 		ctx.fill()
 
-		const barWidth = this.radius*2;
-		const barHeight = 30;
+		const barWidth = this.radius * 0.5;
+		const barHeight = 7;
 		ctx.fillStyle = "black"
 		ctx.fillRect(-barWidth/2, -barHeight/2, barWidth, barHeight)
 		ctx.fillStyle = "ghostwhite"

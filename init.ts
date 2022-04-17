@@ -7,13 +7,13 @@ let pressedKeys = {}
 const borgMode = false;
 let playerData: PlayerData;
 
-const scale = 15;
+const scale = 10;
 const radarMin = 40;
 const radarMax = 200;
 // const sensorSensitivity = 2000;
 let sensorSensitivity = 100;
 const maxSpread = 1000e3;
-const entityCount = 500;
+const entityCount = 100;
 const barWidth = 70;
 
 window.addEventListener('scroll', updateSensorSensitivity);
