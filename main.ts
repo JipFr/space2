@@ -18,6 +18,9 @@ function loop(): void {
 	for(let waypoint of playerData.waypoints) {
 		waypoint.update();
 	}
+	for(let stellarObject of objects) {
+		stellarObject.update()
+	}
 	requestAnimationFrame(loop);
 }
 
@@ -30,6 +33,10 @@ function draw(): void {
 		star.draw();
 	}
 	ctx.globalAlpha = 1;
+
+	for(let stellarObject of objects) {
+		stellarObject.draw()
+	}
 
 	for(let entity of entities) {
 		if(true) { // insert should-draw check here.

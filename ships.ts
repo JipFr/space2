@@ -171,7 +171,6 @@ class Entity {
 			// let alternative: (Entity | void) = ships.find(ent => ent.controllable && ent.health > 0);
 			let alternative: (Entity | void) = ships.find(ent => ent.health > 0);
 			if(alternative) {
-				alert("Switched bodies");
 				player.controllable = false;
 				player = alternative;
 				alternative.controllable = true;

@@ -2,6 +2,7 @@
 	"files": [
 		"init.ts",
 		"main.ts",
+		"objects.ts",
 		"ships.ts",
 		"controller.ts"
 	],
