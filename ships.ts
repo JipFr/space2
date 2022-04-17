@@ -885,45 +885,45 @@ let entities: Entity[] = [];
 
 
 function genShips(): void {
-	let init = true;
-	for (let i = 0; i < entityCount; i++) {
-		let allShips = Object.values(shipClasses);
+	// let init = true;
+	// for (let i = 0; i < entityCount; i++) {
+	// 	let allShips = Object.values(shipClasses);
 
-		let shipChancesArr = Object.entries(shipChances);
-		let smallest = 1;
-		for(let entry of shipChancesArr) {
-			if(entry[1] < smallest) smallest = entry[1];
-		}
-		let dividingFactor = 1 / smallest;
-		shipChancesArr.forEach(entry => entry[1] *= dividingFactor);
-		let shipNames = shipChancesArr.map(entry => {
-			let arr = [];
-			for(let i = 0; i < entry[1]; i++) {
-				arr.push(entry[0]);
-			}
-			return arr;
-		}).flat();
+	// 	let shipChancesArr = Object.entries(shipChances);
+	// 	let smallest = 1;
+	// 	for(let entry of shipChancesArr) {
+	// 		if(entry[1] < smallest) smallest = entry[1];
+	// 	}
+	// 	let dividingFactor = 1 / smallest;
+	// 	shipChancesArr.forEach(entry => entry[1] *= dividingFactor);
+	// 	let shipNames = shipChancesArr.map(entry => {
+	// 		let arr = [];
+	// 		for(let i = 0; i < entry[1]; i++) {
+	// 			arr.push(entry[0]);
+	// 		}
+	// 		return arr;
+	// 	}).flat();
 
-		let randomShip = shipClasses[shipNames[Math.floor(Math.random() * shipNames.length)]];
+	// 	let randomShip = shipClasses[shipNames[Math.floor(Math.random() * shipNames.length)]];
 		
-		// Force ship type
-		if(init && !borgMode) {
-			randomShip = shipClasses["explorer"]
-		} else if(borgMode && init) {
-			randomShip = shipClasses["cube"];
-		} else if(borgMode && !init) {
-			randomShip = shipClasses["nerada"]
-		}
+	// 	// Force ship type
+	// 	if(init && !borgMode) {
+	// 		randomShip = shipClasses["explorer"]
+	// 	} else if(borgMode && init) {
+	// 		randomShip = shipClasses["cube"];
+	// 	} else if(borgMode && !init) {
+	// 		randomShip = shipClasses["nerada"]
+	// 	}
 
-		entities.push(new Entity({
-			ship: randomShip,
-			faction: randomShip.faction,
-			controllable: init,
-			x: init ? 0 : randomCoords(maxSpread),
-			y: init ? 0 : randomCoords(maxSpread)
-		}));
-		if (init) init = false;
-	}
+	// 	entities.push(new Entity({
+	// 		ship: randomShip,
+	// 		faction: randomShip.faction,
+	// 		controllable: init,
+	// 		x: init ? 0 : randomCoords(maxSpread),
+	// 		y: init ? 0 : randomCoords(maxSpread)
+	// 	}));
+	// 	if (init) init = false;
+	// }
 
 	// let carrier = shipClasses["carrier"]
 	// entities.push(new Entity({
@@ -933,6 +933,15 @@ function genShips(): void {
 	// 	x: randomCoords(maxSpread),
 	// 	y: randomCoords(maxSpread)
 	// }));
+
+	let explorer = shipClasses["explorer"]
+	entities.push(new Entity({
+		ship: explorer,
+		faction: explorer.faction,
+		controllable: true,
+		x: 0,
+		y: 0
+	}));
 
 }
 genShips();

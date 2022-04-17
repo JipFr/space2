@@ -13,7 +13,7 @@ const radarMax = 200;
 // const sensorSensitivity = 2000;
 const sensorSensitivity = 2e3;
 const maxSpread = 1000e3;
-const entityCount = 100;
+const entityCount = 500;
 const barWidth = 70;
 
 let shipChances = {

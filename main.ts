@@ -104,7 +104,7 @@ function setResizeHandler(callback: CallableFunction, timeout: number) {
 
 window.addEventListener("load", init);
 
-function getShipDistances(from: Entity = player) {
+function getShipDistances(from: Entity | StellarObject = player) {
 	return entities.map(ent => { 
 		if(ent === from) return null;
 		
