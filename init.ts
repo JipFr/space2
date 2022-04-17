@@ -7,7 +7,7 @@ let pressedKeys = {}
 const borgMode = false;
 let playerData: PlayerData;
 
-const scale = 8;
+const scale = 15;
 const radarMin = 40;
 const radarMax = 200;
 // const sensorSensitivity = 2000;

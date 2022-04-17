@@ -2,7 +2,7 @@
 class Phaser {
 	public dps: number;
 	public color: string;
-	public maxDistance: 1000;
+	public maxDistance: number;
 	public shortcut: string;
 	public position: [number, number];
 	public usage: number;
@@ -22,7 +22,7 @@ class Phaser {
 	}) {
 		this.color = color;
 		this.dps = dps;
-		this.maxDistance = maxDistance;
+		this.maxDistance = maxDistance / (scale / 10);
 		this.shortcut = shortcut;
 		this.position = position;
 		this.usage = 0;
