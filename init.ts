@@ -25,6 +25,7 @@ let shipChances = {
 	explorer: 1,
 	nerada: 0.1,
 	cube: 0.07,
+	carrier: 0.07,
 	god: 0.005,
 }
 

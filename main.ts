@@ -37,10 +37,6 @@ function draw(): void {
 		}
 	}
 	playerData.drawGUI();
-	for(let waypoint of playerData.waypoints) {
-		if(waypoint.target !== player) waypoint.draw();
-	}
-
 }
 
 function findShips(selector: string): (Entity[] | void) {
@@ -75,6 +71,13 @@ function init(): void {
 		backdrop.populateStars();
 	}, 100);
 	
+	document.body.addEventListener("click", (evt) => {
+		const path = evt.composedPath()
+		if(!path.find((v: HTMLElement) => v.nodeName === "BUTTON")) {
+			document.body.classList.toggle('hide-buttons')
+		}
+	})
+
 	loop();
 }
 
@@ -158,4 +161,22 @@ function warZone() {
 			}
 		}
 	}
+}
+
+function spawnEnemy() {
+	const spamShip = Object.assign({}, shipClasses["warbird"]);
+
+	spamShip.startHealth = Infinity;
+
+	entities.push(new Entity({
+		ship: spamShip,
+		faction: spamShip.faction,
+		controllable: false,
+		x: player.x + 200,
+		y: player.y,
+		speed: 0,
+		rotation: 0
+	}));
+	
+	updateWaypoints()
 }

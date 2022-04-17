@@ -705,6 +705,99 @@ const shipClasses = {
 			})
 		]
 	},
+	"carrier": {
+		className: "Carrier class",
+		faction: "Starfleet",
+		maxSpeed: 30,
+		accelaration: 0.1,
+		texture: "carrier.png",
+		startHealth: 4e3,
+		rotSpeed: 5,
+		imageScale: 10,
+		noShake: true,
+		trailExits: [
+			[0.6, 760],
+			[0.7, 790],
+			[0.8, 820],
+			[-0.6, 760],
+			[-0.7, 790],
+			[-0.8, 820]
+		],
+		weapons: [
+			new Phaser({
+				dps: 20,
+				color: "red",
+				maxDistance: 3000,
+				shortcut: " ",
+				maxUsage: 500,
+				weaponCooldownTime: 500,
+				position: [-Math.PI + 0.44, 940]
+			}),
+			new Phaser({
+				dps: 20,
+				color: "pink",
+				maxDistance: 3000,
+				shortcut: " ",
+				maxUsage: 100,
+				weaponCooldownTime: 500,
+				position: [-Math.PI + 1.05, 1060]
+			}),
+			new Phaser({
+				dps: 20,
+				color: "pink",
+				maxDistance: 3000,
+				shortcut: " ",
+				maxUsage: 100,
+				weaponCooldownTime: 500,
+				position: [-Math.PI + 1.25, 1200]
+			}),
+			new Phaser({
+				dps: 20,
+				color: "pink",
+				maxDistance: 3000,
+				shortcut: " ",
+				maxUsage: 100,
+				weaponCooldownTime: 500,
+				position: [-Math.PI + 1.5, 1340]
+			}),
+			new Phaser({
+				dps: 20,
+				color: "red",
+				maxDistance: 3000,
+				shortcut: " ",
+				maxUsage: 500,
+				weaponCooldownTime: 500,
+				position: [-(-Math.PI + 0.44), 940]
+			}),
+			new Phaser({
+				dps: 20,
+				color: "pink",
+				maxDistance: 3000,
+				shortcut: " ",
+				maxUsage: 100,
+				weaponCooldownTime: 500,
+				position: [-(-Math.PI + 1.05), 1060]
+			}),
+			new Phaser({
+				dps: 20,
+				color: "pink",
+				maxDistance: 3000,
+				shortcut: " ",
+				maxUsage: 100,
+				weaponCooldownTime: 500,
+				position: [-(-Math.PI + 1.25), 1200]
+			}),
+			new Phaser({
+				dps: 20,
+				color: "pink",
+				maxDistance: 3000,
+				shortcut: " ",
+				maxUsage: 100,
+				weaponCooldownTime: 500,
+				position: [-(-Math.PI + 1.5), 1340]
+			}),
+		]
+	},
 	"explorer": {
 		className: "Explorer",
 		faction: "Starfleet",
@@ -833,6 +926,15 @@ function genShips(): void {
 		if (init) init = false;
 	}
 
+	// let carrier = shipClasses["carrier"]
+	// entities.push(new Entity({
+	// 	ship: carrier,
+	// 	faction: carrier.faction,
+	// 	controllable: false,
+	// 	x: randomCoords(maxSpread),
+	// 	y: randomCoords(maxSpread)
+	// }));
+
 }
 genShips();
 
@@ -894,7 +996,7 @@ class Waypoint {
 		ctx.translate(offsetX, 0);
 		let cubeSize = 10;
 		ctx.rotate(-rot);
-		if(this.target.faction !== "Borg") {
+		if(this.target.faction !== "Borg" && this.target.ship.className !== "Carrier class") {
 			ctx.beginPath();
 			
 			ctx.fillStyle = "green";
@@ -939,7 +1041,7 @@ class Waypoint {
 			}
 
 		} else {
-			ctx.fillStyle = this.target.health > 0 ? "red" : "gray";
+			ctx.fillStyle = this.target.faction === player.faction ? 'white' : this.target.health > 0 ? "red" : "gray";
 			ctx.fillRect(-cubeSize/2, -cubeSize/2, cubeSize, cubeSize);
 		}
 
@@ -965,31 +1067,37 @@ class PlayerData {
 	public drawGUI() {
 		ctx.save();
 
-		ctx.translate(canvas.width / 2, canvas.height / 2);
-		ctx.beginPath();
+		if([...document.querySelector('.gui').classList].includes('toggled')) {
+			ctx.translate(canvas.width / 2, canvas.height / 2);
+			ctx.beginPath();
+	
+			ctx.strokeStyle = "white";
+	
+			ctx.globalAlpha = 0.2;
+	
+			ctx.arc(0, 0, this.minRadius, 0, Math.PI * 2);
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.arc(0, 0, this.maxRadius, 0, Math.PI * 2);
+			ctx.stroke();
+	
+			// Blue line
+			ctx.rotate(player.rotation);
+			ctx.beginPath();
+	
+			ctx.moveTo(playerData.minRadius, 0);
+			ctx.lineTo(playerData.maxRadius, 0);
+	
+			ctx.globalAlpha = 1;
+			ctx.strokeStyle = "aqua";
+			ctx.stroke();
+	
+			ctx.restore();
 
-		ctx.strokeStyle = "white";
-
-		ctx.globalAlpha = 0.2;
-
-		ctx.arc(0, 0, this.minRadius, 0, Math.PI * 2);
-		ctx.stroke();
-		ctx.beginPath();
-		ctx.arc(0, 0, this.maxRadius, 0, Math.PI * 2);
-		ctx.stroke();
-
-		// Blue line
-		ctx.rotate(player.rotation);
-		ctx.beginPath();
-
-		ctx.moveTo(playerData.minRadius, 0);
-		ctx.lineTo(playerData.maxRadius, 0);
-
-		ctx.globalAlpha = 1;
-		ctx.strokeStyle = "aqua";
-		ctx.stroke();
-
-		ctx.restore();
+			for(let waypoint of playerData.waypoints) {
+				if(waypoint.target !== player) waypoint.draw();
+			}
+		}
 
 		this.drawBars();
 

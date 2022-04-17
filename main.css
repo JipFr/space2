@@ -38,10 +38,12 @@ canvas {
 
 .controls-right > div, .controls-top-right > div {
 	display: flex;
+	justify-content:flex-end;
+	margin: auto;
 }
 
 @media (hover: hover) {
-	.controls-left, .controls-right {
+	.controls-left, .controls-right, .controls-top-right {
 		display: none;
 	}
 }
@@ -58,6 +60,13 @@ button {
 	justify-content: center;
 	align-items: center;
 	font-size: 1rem;
+	transition: opacity 200ms;
+}
+.hide-buttons button {
+	opacity: 0;
+}
+button.toggled {
+	background: rgba(255, 255, 255, 0.2);
 }
 button:active {
 	background: black;
