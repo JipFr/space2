@@ -219,6 +219,7 @@ class Entity {
 			}
 			if(pressedKeys["8"] && !this.action) {
 				entities.forEach(ship => {
+					ship.action = undefined
 					if(ship !== player) ship.moveTo(player);
 				});
 			}

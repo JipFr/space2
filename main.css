@@ -32,12 +32,11 @@ canvas {
 
 .controls-top-right {
 	position: fixed;
-	display: flex;
 	top: calc(10px + env(safe-area-inset-bottom));
 	right: calc(10px + env(safe-area-inset-right));
 }
 
-.controls-right > div {
+.controls-right > div, .controls-top-right > div {
 	display: flex;
 }
 
