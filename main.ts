@@ -113,3 +113,49 @@ function getCustomPosition(position: [number, number], entity: Entity): [number,
 	let setY = entity.y - (offset * Math.sin(entity.rotation - position[0]));
 	return [setX, setY];
 }
+
+function whackoMode() {
+	// Turn every entity into its own faction
+	if(confirm('Do you want to turn every ship into its own faction, causing a free-for-all?')) {
+		for(let [i, entity] of Object.entries(entities)) {
+			// entity.ship = Object.assign({}, entity.ship)
+			entity.faction = i
+		}
+	}
+}
+
+function whackModeShips() {
+	if(confirm('Spam borg ships?')) {
+		const spamShip = shipClasses["cube"];
+
+		for(let i = 0; i < 20; i++) {
+			entities.push(new Entity({
+				ship: spamShip,
+				faction: spamShip.faction,
+				controllable: false,
+				x: 0,
+				y: 0,
+				speed: Math.floor(Math.random() * spamShip.maxSpeed),
+				rotation: Math.random() * 30
+			}));
+		}
+
+		updateWaypoints()
+	}
+}
+
+function warZone() {
+	if(confirm('Activate warzone?')) {
+		// Get all factions
+		const factions = [...new Set(entities.map(v => v.faction))]
+	
+		// Put factions in groups
+		for(let i = 0; i < factions.length; i++) {
+			const members = entities.filter(v => v.faction === factions[i])
+			for(let member of members) {
+				member.x = (i * 15e3) + Math.random() * 2e3;
+				member.y = (i * 15e3) + Math.random() * 2e3;
+			}
+		}
+	}
+}

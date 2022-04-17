@@ -1,6 +1,7 @@
 html, body {
 	user-select: none;
 	-webkit-user-select: none;
+	min-height: calc(100vh - env(safe-area-inset-top));
 }
 body {
 	margin: 0;
@@ -8,20 +9,31 @@ body {
 	color: white;
 }
 canvas {
+	position: fixed;
+	z-index: -1;
+	top: 0;
+	left: 0;
 	display: block;
 	width: 100%;
-	height: 100vh;
+	height: calc(100vh - env(safe-area-inset-top));
 }
 
 .controls-left {
-	position: absolute;
+	position: fixed;
 	bottom: calc(10px + env(safe-area-inset-bottom));
 	left: calc(10px + env(safe-area-inset-left));
 }
 
 .controls-right {
-	position: absolute;
+	position: fixed;
 	bottom: calc(10px + env(safe-area-inset-bottom));
+	right: calc(10px + env(safe-area-inset-right));
+}
+
+.controls-top-right {
+	position: fixed;
+	display: flex;
+	top: calc(10px + env(safe-area-inset-bottom));
 	right: calc(10px + env(safe-area-inset-right));
 }
 
