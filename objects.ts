@@ -147,8 +147,8 @@ for(let i = 0; i < 100; i++) {
 		y: randomCoords(maxSpread),
 		faction: allFactions[Math.floor(Math.random() * allFactions.length)]
 	});
-	for(let j = 0; j < 3; j++) {
-		const subplanet = planet.addChild(planet.radius * 3 + Math.floor(Math.random() * 5e3), Math.floor(Math.random() * (planet.radius * 0.5)))
+	for(let j = 0; j < Math.floor(Math.random() * 8); j++) {
+		const subplanet = planet.addChild(planet.radius * 3 + Math.floor(Math.random() * 9e3), Math.floor(Math.random() * (planet.radius * 0.5)))
 		subplanet.addChild(subplanet.radius * 2, 10)
 		
 	}
