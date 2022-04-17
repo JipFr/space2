@@ -1041,8 +1041,17 @@ class Waypoint {
 			}
 
 		} else {
-			ctx.fillStyle = this.target.faction === player.faction ? 'white' : this.target.health > 0 ? "red" : "gray";
-			ctx.fillRect(-cubeSize/2, -cubeSize/2, cubeSize, cubeSize);
+			
+			let size = cubeSize;
+			if(this.target.ship.className === "Carrier class") {
+				ctx.fillStyle = "white";
+				ctx.fillRect(-cubeSize/2, -cubeSize/2, cubeSize, cubeSize);
+				size = cubeSize * 0.6;
+			}
+
+			ctx.fillStyle = this.target.faction === player.faction ? "green" : "red";
+			if(this.target.health <= 0) ctx.fillStyle = "gray";
+			ctx.fillRect(-size/2, -size/2, size, size);
 		}
 
 		ctx.restore();
