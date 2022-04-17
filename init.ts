@@ -11,10 +11,17 @@ const scale = 8;
 const radarMin = 40;
 const radarMax = 200;
 // const sensorSensitivity = 2000;
-const sensorSensitivity = 2e3;
+let sensorSensitivity = 100;
 const maxSpread = 1000e3;
 const entityCount = 500;
 const barWidth = 70;
+
+window.addEventListener('scroll', updateSensorSensitivity);
+updateSensorSensitivity()
+function updateSensorSensitivity() {
+	sensorSensitivity = 100 + (window.scrollY / (document.body.scrollHeight - window.innerHeight) * 4900)
+	return sensorSensitivity
+}
 
 let shipChances = {
 	warbird: 0.8,
@@ -31,6 +38,7 @@ let shipChances = {
 
 document.addEventListener("keydown", (evt: KeyboardEvent) => {
 	pressedKeys[evt.key.toLowerCase()] = true;
+	if(evt.key.toLowerCase() === " ") evt.preventDefault()
 });
 document.addEventListener("keyup", (evt: KeyboardEvent) => {
 	pressedKeys[evt.key.toLowerCase()] = false;

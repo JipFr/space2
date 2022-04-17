@@ -11,11 +11,13 @@ class StellarObject {
 	faction: string;
 	cooldown: number;
 	parent: StellarObject
+	isShip: false
 
 	constructor({ radius, x = null, y = null, distance = null, faction, parent = null }: { radius: number, x?: number, y?: number, distance?: number, faction: string, parent?: StellarObject }) {
 
 		const possibleColors = ["white", "green", "blue", "brown"]
 
+		this.isShip = false
 		this.cooldown = 0;
 		this.rot = Math.random() * (Math.PI*2)
 		this.radius = radius;

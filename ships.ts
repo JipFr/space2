@@ -969,17 +969,29 @@ function spawnExplorers(amount: number = 1) {
 }
 
 function updateWaypoints(): void {
-	playerData.waypoints = entities.map(ent => new Waypoint({ target: ent }));
+	playerData.waypoints = [
+		...entities.map(ent => new Waypoint({ target: ent })),
+	];
+
+	const allObjects = []
+	function addPlanets(object: StellarObject) {
+		allObjects.push(object)
+		object.children.forEach(addPlanets)
+	}
+	for(let object of objects) {
+		addPlanets(object)
+	}
+	playerData.waypoints.push(...allObjects.map(ent => new Waypoint({ target: ent })))
 }
 
 let player = entities.find(ship => ship.controllable === true);
 
 class Waypoint {
-	public target: Entity;
+	public target: Entity | StellarObject;
 
 	public distance?: number;
 
-	constructor({ target }: { target: Entity }) {
+	constructor({ target }: { target: Entity | StellarObject }) {
 		this.target = target;
 	}
 
@@ -1004,7 +1016,7 @@ class Waypoint {
 		ctx.translate(offsetX, 0);
 		let cubeSize = 10;
 		ctx.rotate(-rot);
-		if(this.target.faction !== "Borg" && this.target.ship.className !== "Carrier class") {
+		if(this.target.isShip && this.target.faction !== "Borg" && this.target.ship.className !== "Carrier class") {
 			ctx.beginPath();
 			
 			ctx.fillStyle = "green";
@@ -1048,7 +1060,7 @@ class Waypoint {
 				ctx.stroke();
 			}
 
-		} else {
+		} else if(this.target.isShip) {
 			
 			let size = cubeSize;
 			if(this.target.ship.className === "Carrier class") {
@@ -1059,6 +1071,11 @@ class Waypoint {
 
 			ctx.fillStyle = this.target.faction === player.faction ? "green" : "red";
 			if(this.target.health <= 0) ctx.fillStyle = "gray";
+			ctx.fillRect(-size/2, -size/2, size, size);
+		} else {
+			ctx.globalAlpha = 0.3;
+			let size = 3;
+			ctx.fillStyle = this.target.faction === player.faction ? "white" : "aqua";
 			ctx.fillRect(-size/2, -size/2, size, size);
 		}
 
