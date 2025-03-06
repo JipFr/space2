@@ -1,4 +1,3 @@
-
 class Phaser {
 	public dps: number;
 	public color: string;
@@ -18,7 +17,7 @@ class Phaser {
 		shortcut,
 		position,
 		maxUsage = 30,
-		weaponCooldownTime = 31
+		weaponCooldownTime = 31,
 	}) {
 		this.color = color;
 		this.dps = dps;
@@ -41,11 +40,21 @@ class Phaser {
 			this.disabled = false;
 		}
 
-		let ships: Entity[] = getShipDistances(firing)
-			.filter(ent => ent !== firing && ent.faction !== firing.faction && ent.health > 0 && (firing.controllable ? !ent.controllable : true));
+		let ships: Entity[] = getShipDistances(firing).filter(
+			(ent) =>
+				ent !== firing &&
+				ent.faction !== firing.faction &&
+				ent.health > 0 &&
+				(firing.controllable ? !ent.controllable : true)
+		);
 
-		let closest: (Entity | void) = ships[0];
-		if (closest && closest.distance < this.maxDistance && firing.health > 10 && !this.disabled) {
+		let closest: Entity | void = ships[0];
+		if (
+			closest &&
+			closest.distance < this.maxDistance &&
+			firing.health > 10 &&
+			!this.disabled
+		) {
 			ctx.beginPath();
 
 			ctx.translate(canvas.width / 2, canvas.height / 2);
@@ -58,7 +67,7 @@ class Phaser {
 			let fireY = closest.y - player.y;
 			let size = Math.abs(getShipSize(closest));
 			function getRandOffset(): number {
-				return (Math.random() * size) - size / 2;
+				return Math.random() * size - size / 2;
 			}
 			ctx.lineTo(fireX + getRandOffset(), fireY + getRandOffset());
 
@@ -67,24 +76,25 @@ class Phaser {
 			ctx.stroke();
 
 			let turnDir = Math.floor(Math.random() * 2) === 0 ? "Left" : "Right";
-			if(!closest.ship.noShake) closest[`turn${turnDir}`]();
+			if (!closest.ship.noShake) closest[`turn${turnDir}`]();
 			closest.health -= this.dps / 60;
-			if(closest.health <= 0 && !closest.isDead) {
+			if (closest.health <= 0 && !closest.isDead) {
 				closest.timesKilled++;
 				closest.isDead = true;
-				if(closest.timesKilled <= 1) {
+				if (closest.timesKilled <= 1) {
 					// This is the first time the enemy ship is killed
 					// Give points to responsible party
-					let pointsTo = (firing.following ?? {}).faction === firing.faction ? firing.following : firing;
+					let pointsTo =
+						(firing.following ?? {}).faction === firing.faction
+							? firing.following
+							: firing;
 					scoreboard.addPoints(pointsTo, closest);
 				}
 			}
-			this.usage++
-
+			this.usage++;
 		}
 		ctx.restore();
 	}
-
 }
 
 interface shipClass {
@@ -105,7 +115,16 @@ interface MovementAction {
 	main(): void;
 	loop(): void;
 	i: number;
-	goTo: (Entity | { x: number, y: number, speed?: number, faction?: string, health?: number, isShip?: false });
+	goTo:
+		| Entity
+		| {
+				x: number;
+				y: number;
+				speed?: number;
+				faction?: string;
+				health?: number;
+				isShip?: false;
+		  };
 }
 
 class Entity {
@@ -140,15 +159,18 @@ class Entity {
 		controllable = false,
 		x = 0,
 		y = 0,
-		rotation = (Math.random() * (Math.PI * 2)) - Math.PI,
-		speed = 5
+		rotation = Math.random() * (Math.PI * 2) - Math.PI,
+		speed = 5,
 	}) {
 		this.isShip = true;
 		this.ship = ship;
 		this.ship.image = new Image();
 		this.ship.image.src = `assets/ships/${this.ship.texture}`;
 
-		this.weapons = JSON.parse(JSON.stringify(this.ship.weapons)).map(phaser => new Phaser(phaser)) || [];
+		this.weapons =
+			JSON.parse(JSON.stringify(this.ship.weapons)).map(
+				(phaser) => new Phaser(phaser)
+			) || [];
 
 		this.faction = faction;
 		this.controllable = controllable;
@@ -158,7 +180,7 @@ class Entity {
 		this.x = x;
 		this.y = y;
 		this.followers = 0;
-		this.trails = {}
+		this.trails = {};
 		this.velocity = [0, 0];
 		this.isDead = this.health > 0;
 		this.timesKilled = 0;
@@ -166,36 +188,40 @@ class Entity {
 	}
 
 	protected updateControllable(): void {
-		if(this === player && this.health <= 0) {
+		if (this === player && this.health <= 0) {
 			let ships = getShipDistances();
 			// let alternative: (Entity | void) = ships.find(ent => ent.controllable && ent.health > 0);
-			let alternative: (Entity | void) = ships.find(ent => ent.health > 0);
-			if(alternative) {
+			let alternative: Entity | void = ships.find((ent) => ent.health > 0);
+			if (alternative) {
 				player.controllable = false;
 				player = alternative;
 				alternative.controllable = true;
 			}
 		}
-		
-		if(this.health > 0) {
 
-			if(gamepadAxes.length > 0) {
+		if (this.health > 0) {
+			if (gamepadAxes.length > 0) {
 				let leftStick = gamepadAxes[0];
-				if(Math.abs(leftStick[0]) > 0.2) player.rotation += leftStick[0] * (player.ship.rotSpeed / 1e3);
-				if(leftStick[1] < -0.5) {
+				if (Math.abs(leftStick[0]) > 0.2)
+					player.rotation += leftStick[0] * (player.ship.rotSpeed / 1e3);
+				if (leftStick[1] < -0.5) {
 					this.accelerate();
-				} else if(leftStick[1] > 0.5) {
+				} else if (leftStick[1] > 0.5) {
 					this.deccelerate();
 				}
 			}
 
-			if(gamepadButtons[0] && gamepadButtons[0].pressed) {
-				for(let weapon of this.weapons) {
+			if (gamepadButtons[0] && gamepadButtons[0].pressed) {
+				for (let weapon of this.weapons) {
 					weapon.fire(this);
 				}
 			}
 
-			if (((pressedKeys["w"] && this.speed < 5) || (pressedKeys["w"] && pressedKeys["shift"])) && !this.action) {
+			if (
+				((pressedKeys["w"] && this.speed < 5) ||
+					(pressedKeys["w"] && pressedKeys["shift"])) &&
+				!this.action
+			) {
 				this.accelerate();
 			}
 			if (pressedKeys["s"] && !this.action) {
@@ -208,116 +234,123 @@ class Entity {
 				this.turnRight();
 			}
 
-			if(pressedKeys["0"] && !this.action) {
-				this.moveTo({x: 0, y: 0});
+			if (pressedKeys["0"] && !this.action) {
+				this.moveTo({ x: 0, y: 0 });
 			}
-			if(pressedKeys["9"] && !this.action) {
-				entities.forEach(ship => {
-					if(ship.faction === player.faction && ship !== player) ship.moveTo(player);
+			if (pressedKeys["9"] && !this.action) {
+				entities.forEach((ship) => {
+					if (ship.faction === player.faction && ship !== player)
+						ship.moveTo(player);
 				});
 			}
-			if(pressedKeys["8"] && !this.action) {
-				entities.forEach(ship => {
-					ship.action = undefined
-					if(ship !== player) ship.moveTo(player);
+			if (pressedKeys["8"] && !this.action) {
+				entities.forEach((ship) => {
+					ship.action = undefined;
+					if (ship !== player) ship.moveTo(player);
 				});
 			}
-			if(pressedKeys["7"]) {
+			if (pressedKeys["7"]) {
 				toClosestFriendly(this);
 			}
-			if(pressedKeys["6"]) {
-				let ships = getShipDistances(this).filter(s => s.faction !== this.faction && s.health > 10);
-				if(ships[0]) this.moveTo(ships[0]);
+			if (pressedKeys["6"]) {
+				let ships = getShipDistances(this).filter(
+					(s) => s.faction !== this.faction && s.health > 10
+				);
+				if (ships[0]) this.moveTo(ships[0]);
 			}
-			if(pressedKeys["1"]) {
-				entities.forEach(e => {
+			if (pressedKeys["1"]) {
+				entities.forEach((e) => {
 					delete e.following;
 					delete e.action;
-					e.moveTo({x: 0, y: 0});
+					e.moveTo({ x: 0, y: 0 });
 				});
 			}
 
-
-			if(pressedKeys["c"] && this.action) {
+			if (pressedKeys["c"] && this.action) {
 				delete this.action;
 				delete this.following;
 			}
- 
-			for (let weapon of (this.weapons || [])) {
+
+			for (let weapon of this.weapons || []) {
 				if (pressedKeys[weapon.shortcut]) {
 					weapon.fire(this);
 				}
 			}
-		}	
+		}
 	}
 
 	protected updateNonControllable(): void {
-		let ships = getShipDistances(this).filter(sh => sh.distance < 9e5 && sh.health > 0);
-		if(ships.length > 0) {
-
-			if((!this.following ||
-				(
-				 this.following.faction === this.faction && 
-				 !(this.following === player && player.health > 0) && 
-				 ships[0] === player
-				)) &&
+		let ships = getShipDistances(this).filter(
+			(sh) => sh.distance < 9e5 && sh.health > 0
+		);
+		if (ships.length > 0) {
+			if (
+				(!this.following ||
+					(this.following.faction === this.faction &&
+						!(this.following === player && player.health > 0) &&
+						ships[0] === player)) &&
 				ships[0].following !== this
 			) {
 				this.following = ships[0];
-				this.following.followers++
-			} else if(this.following && this.following.following) {
+				this.following.followers++;
+			} else if (this.following && this.following.following) {
 				this.following = this.following.following;
 			}
-
 		}
 
-		for (let weapon of (this.weapons || [])) {
+		for (let weapon of this.weapons || []) {
 			weapon.fire(this);
 		}
 	}
 
 	public update(): void {
-
 		if (this.controllable) {
-			this.updateControllable();	
+			this.updateControllable();
 		} else {
 			this.updateNonControllable();
 		}
 
-		if(this.speed < 0.01) {
+		if (this.speed < 0.01) {
 			this.speed = 0;
 		}
 
-		if(this.isDead && this.health > 0) {
+		if (this.isDead && this.health > 0) {
 			this.isDead = false;
 		}
-		
+
 		// If following someone...
-		if(this.following) {
-			if(this.following.health > 0) {
-				
-				if(!this.action || this.action.goTo !== this.following) {
+		if (this.following) {
+			if (this.following.health > 0) {
+				if (!this.action || this.action.goTo !== this.following) {
 					this.moveTo(this.following);
 				}
-
-			} else if(this.following !== player || this.following.faction !== this.faction) {
-				this.following.followers--
+			} else if (
+				this.following !== player ||
+				this.following.faction !== this.faction
+			) {
+				this.following.followers--;
 				delete this.following;
 			}
 		}
 
 		// Heal friendly nearby ships
-		let healable = getShipDistances(this).filter(sh => sh.faction === this.faction && sh.distance < 250 && sh.health < sh.ship.startHealth && this.health > 0);
-		for(let ship of healable) {
+		let healable = getShipDistances(this).filter(
+			(sh) =>
+				sh.faction === this.faction &&
+				sh.distance < 250 &&
+				sh.health < sh.ship.startHealth &&
+				this.health > 0
+		);
+		for (let ship of healable) {
 			ship.health += 0.1;
 		}
 
 		// Weapon cooldown
-		for (let weapon of (this.weapons || [])) {
+		for (let weapon of this.weapons || []) {
 			if (weapon.usage > 0) weapon.usage -= 0.5;
 			if (weapon.weaponCooldown > 0) weapon.weaponCooldown -= 0.5;
 		}
-		
+
 		// Speed checks
 		let ms = this.ship.maxSpeed * (this.health / this.ship.startHealth);
 		if (ms < 0) ms = 0;
@@ -342,35 +375,51 @@ class Entity {
 				this.trails[i].push([setX, setY]);
 			}
 
-			if (this.trails[i].length > 20 || (this.speed < 1 && this.trails[i].length > 0)) {
+			if (
+				this.trails[i].length > 20 ||
+				(this.speed < 1 && this.trails[i].length > 0)
+			) {
 				this.trails[i].shift();
 			}
 		}
 
 		// If there is an action (like moving towards something), run its main thing
-		if(this.action) {
+		if (this.action) {
 			this.action.loop();
 		}
 
 		// Call for backup if there's the need
-		if(this.health > 0 && this.health / this.ship.startHealth < 0.4 && !this.calledForBackup) { // 40%
+		if (
+			this.health > 0 &&
+			this.health / this.ship.startHealth < 0.4 &&
+			!this.calledForBackup
+		) {
+			// 40%
 			this.callForBackup();
 		}
 
-		if(this.health < 0) {
+		if (this.health < 0) {
 			this.health = 0;
 		}
-
 	}
 
 	public callForBackup() {
-		if(!this.calledForBackup) {
+		if (!this.calledForBackup) {
+			let nearbyFriendlies = getShipDistances(this)
+				.filter(
+					(sh) => sh.faction === this.faction && sh !== player && sh.health > 0
+				)
+				.slice(0, 3);
 
-			let nearbyFriendlies = getShipDistances(this).filter(sh => sh.faction === this.faction && sh !== player && sh.health > 0).slice(0, 3);
+			console.log(
+				`${nearbyFriendlies.length} ${
+					this.faction === player.faction ? "friendly" : "hostile"
+				} ships are now approaching a ${
+					this === player ? "the player" : this.ship.className + " type shit"
+				}`
+			);
 
-			console.log(`${nearbyFriendlies.length} ${this.faction === player.faction ? "friendly" : "hostile"} ships are now approaching a ${this === player ? "the player" : this.ship.className + " type shit"}`)
-
-			for(let friendly of nearbyFriendlies) {
+			for (let friendly of nearbyFriendlies) {
 				friendly.following = this;
 			}
 
@@ -378,7 +427,7 @@ class Entity {
 		}
 	}
 
-	public moveTo(location: (Entity | {x: number, y: number})) {
+	public moveTo(location: Entity | { x: number; y: number }) {
 		let ships = getShipDistances();
 		let ent = ships[Math.floor(Math.random() * ships.length)];
 		this.action = {
@@ -397,49 +446,60 @@ class Entity {
 				this.distance = distance;
 				goTo.speed = goTo.speed ?? 0;
 
-				if(!goTo.isShip) goTo.isShip = false;
+				if (!goTo.isShip) goTo.isShip = false;
 
-				if(i >= 0 && distance > maxDist) {
-					let dirTo = distance < Math.min(maxDist * 2, 400) && goTo.isShip ? goTo.rotation : Math.atan2(goToY - this.y, goToX - this.x);
-					
+				if (i >= 0 && distance > maxDist) {
+					let dirTo =
+						distance < Math.min(maxDist * 2, 400) && goTo.isShip
+							? goTo.rotation
+							: Math.atan2(goToY - this.y, goToX - this.x);
+
 					function normalizeAngle(a: number) {
 						// No idea
 						let totalRange = Math.PI * 2;
-						if(a > Math.PI) {
+						if (a > Math.PI) {
 							a -= totalRange;
-						} else if(a < -Math.PI) {
+						} else if (a < -Math.PI) {
 							a += totalRange;
 						}
 						return a;
 					}
 
 					let relativeHeading = normalizeAngle(dirTo - this.rotation);
-					if(this.health > 0) {
+					if (this.health > 0) {
 						this.rotation += relativeHeading / 30;
 						this.correctRotation();
 					}
-					
 				}
-				if(i >= 100 && distance > maxDist) this.accelerate();
+				if (i >= 100 && distance > maxDist) this.accelerate();
 				// if(i >= 100 && distance > (maxDist / 10) && this.speed < (goTo.speed ?? 0)) this.accelerate();
-				
-				// if(this.faction === goTo.faction && distance < 100 && this.speed > goTo.speed) this.speed = goTo.speed; 
-				if(distance < (maxDist / 10) + (this.speed * 20) && (goTo.speed ?? 0) < 20) {
+
+				// if(this.faction === goTo.faction && distance < 100 && this.speed > goTo.speed) this.speed = goTo.speed;
+				if (
+					distance < maxDist / 10 + this.speed * 20 &&
+					(goTo.speed ?? 0) < 20
+				) {
 					this.speed -= this.speed / 10;
 				}
-				if(distance < maxDist + (Math.abs(this.speed - goTo.speed ?? 0) * 20)) {
+				if (
+					distance <
+					maxDist + Math.abs(this.speed - (goTo.speed ?? 0)) * 20
+				) {
 					this.speed -= this.speed / 10;
 				}
-				
-				
-				if((goTo.health <= 0 && goTo.faction !== this.faction) || (this === player && goTo.speed <= 0.01 && this.speed <= 0.01)) delete this.action;
+
+				if (
+					(goTo.health <= 0 && goTo.faction !== this.faction) ||
+					(this === player && goTo.speed <= 0.01 && this.speed <= 0.01)
+				)
+					delete this.action;
 			},
 			loop: () => {
-				this.action.i++
+				this.action.i++;
 				this.action.main();
 			},
-			goTo: location
-		}
+			goTo: location,
+		};
 	}
 
 	public accelerate() {
@@ -469,8 +529,8 @@ class Entity {
 	}
 
 	public correctRotation() {
-		if(this.rotation < -Math.PI) this.rotation = Math.PI;
-		if(this.rotation > Math.PI) this.rotation = -Math.PI;
+		if (this.rotation < -Math.PI) this.rotation = Math.PI;
+		if (this.rotation > Math.PI) this.rotation = -Math.PI;
 	}
 
 	public draw(): void {
@@ -484,7 +544,10 @@ class Entity {
 
 		for (let trail of Object.values(this.trails)) {
 			if (trail.length > 0) {
-				let points = trail.map((s: [number, number]) => [s[0] - this.x, s[1] - this.y]);
+				let points = trail.map((s: [number, number]) => [
+					s[0] - this.x,
+					s[1] - this.y,
+				]);
 				ctx.beginPath();
 				ctx.moveTo(points[0][0], points[0][1]);
 
@@ -503,42 +566,45 @@ class Entity {
 		let imgWidth = (img.width / scale) * (this.ship.imageScale || 1);
 		let imgHeight = (img.height / scale) * (this.ship.imageScale || 1);
 
-		ctx.drawImage(this.ship.image, -imgWidth / 2, -imgHeight / 2, imgWidth, imgHeight);
+		ctx.drawImage(
+			this.ship.image,
+			-imgWidth / 2,
+			-imgHeight / 2,
+			imgWidth,
+			imgHeight
+		);
 
 		ctx.restore();
 	}
-
 }
 
 const shipClasses = {
-	"warbird": {
+	warbird: {
 		className: "Romulan Warbird",
 		faction: "Romulan",
 		maxSpeed: 30,
 		texture: "3.png",
 		startHealth: 100,
 		rotSpeed: 40,
-		trailExits: [
-			[0, 100]
-		],
+		trailExits: [[0, 100]],
 		weapons: [
 			new Phaser({
 				dps: 40,
 				color: "red",
 				maxDistance: 2000,
 				shortcut: " ",
-				position: [Math.PI / 2, 100]
+				position: [Math.PI / 2, 100],
 			}),
 			new Phaser({
 				dps: 40,
 				color: "red",
 				maxDistance: 2000,
 				shortcut: " ",
-				position: [-Math.PI / 2, 100]
-			})
-		]
+				position: [-Math.PI / 2, 100],
+			}),
+		],
 	},
-	"dreadnought": {
+	dreadnought: {
 		className: "Dreadnought",
 		faction: "Breen",
 		maxSpeed: 25,
@@ -546,25 +612,23 @@ const shipClasses = {
 		startHealth: 500,
 		rotSpeed: 8,
 		imageScale: 5,
-		trailExits: [
-			[0, 460]
-		],
+		trailExits: [[0, 460]],
 		weapons: [
 			new Phaser({
 				dps: 5,
 				color: "purple",
 				maxDistance: 500,
 				shortcut: " ",
-				position: [-(Math.PI + 0.09), 390]
+				position: [-(Math.PI + 0.09), 390],
 			}),
 			new Phaser({
 				dps: 5,
 				color: "purple",
 				maxDistance: 500,
 				shortcut: " ",
-				position: [-(Math.PI - 0.09), 390]
-			})
-		]
+				position: [-(Math.PI - 0.09), 390],
+			}),
+		],
 	},
 	// "cube": {
 	// 	className: "Borg cube",
@@ -610,7 +674,7 @@ const shipClasses = {
 	// 		})
 	// 	]
 	// },
-	"defiant": {
+	defiant: {
 		className: "Defiant",
 		faction: "Starfleet",
 		maxSpeed: 30,
@@ -619,18 +683,16 @@ const shipClasses = {
 		rotSpeed: 20,
 		imageScale: 0.3,
 		accelaration: 0.3,
-		trailExits: [
-			[0, 20]
-		],
+		trailExits: [[0, 20]],
 		weapons: [
 			new Phaser({
 				dps: 90,
 				color: "blue",
 				maxDistance: 1000,
 				shortcut: " ",
-				position: [-Math.PI, 20]
-			})
-		]
+				position: [-Math.PI, 20],
+			}),
+		],
 	},
 	// "nerada": {
 	// 	className: "Nerada",
@@ -797,7 +859,7 @@ const shipClasses = {
 	// 		}),
 	// 	]
 	// },
-	"explorer": {
+	explorer: {
 		className: "Explorer",
 		faction: "Starfleet",
 		maxSpeed: 300,
@@ -807,7 +869,7 @@ const shipClasses = {
 		rotSpeed: 50,
 		trailExits: [
 			[0.15, 100],
-			[-0.15, 100]
+			[-0.15, 100],
 		],
 		weapons: [
 			new Phaser({
@@ -815,11 +877,11 @@ const shipClasses = {
 				color: "orange",
 				maxDistance: 1000,
 				shortcut: " ",
-				position: [Math.PI, 100]
-			})
-		]
+				position: [Math.PI, 100],
+			}),
+		],
 	},
-	"breen_explorer": {
+	breen_explorer: {
 		className: "Breen Explorer",
 		faction: "Breen",
 		maxSpeed: 500,
@@ -829,11 +891,9 @@ const shipClasses = {
 		rotSpeed: 50,
 		imageScale: 3,
 		weapons: [],
-		trailExits: [
-			[0, 320]
-		]
+		trailExits: [[0, 320]],
 	},
-	"breen_warship": {
+	breen_warship: {
 		className: "Breen Warship",
 		faction: "Breen",
 		maxSpeed: 25,
@@ -848,41 +908,38 @@ const shipClasses = {
 				color: "purple",
 				maxDistance: 1200,
 				shortcut: " ",
-				position: [Math.PI-0.45, 420]
+				position: [Math.PI - 0.45, 420],
 			}),
 			new Phaser({
 				dps: 20,
 				color: "purple",
 				maxDistance: 1200,
 				shortcut: " ",
-				position: [Math.PI-0.72, 370]
+				position: [Math.PI - 0.72, 370],
 			}),
 			new Phaser({
 				dps: 20,
 				color: "purple",
 				maxDistance: 1200,
 				shortcut: " ",
-				position: [Math.PI+0.45, 420]
+				position: [Math.PI + 0.45, 420],
 			}),
 			new Phaser({
 				dps: 20,
 				color: "purple",
 				maxDistance: 1200,
 				shortcut: " ",
-				position: [Math.PI+0.72, 370]
-			})
+				position: [Math.PI + 0.72, 370],
+			}),
 		],
 		trailExits: [
 			[0.2, 330],
-			[-0.2, 330]
-		]
-	}
-}
-
-
+			[-0.2, 330],
+		],
+	},
+};
 
 let entities: Entity[] = [];
-
 
 function genShips(): void {
 	// let init = true;
@@ -905,7 +962,7 @@ function genShips(): void {
 	// 	}).flat();
 
 	// 	let randomShip = shipClasses[shipNames[Math.floor(Math.random() * shipNames.length)]];
-		
+
 	// 	// Force ship type
 	// 	if(init && !borgMode) {
 	// 		randomShip = shipClasses["explorer"]
@@ -934,15 +991,16 @@ function genShips(): void {
 	// 	y: randomCoords(maxSpread)
 	// }));
 
-	let explorer = shipClasses["explorer"]
-	entities.push(new Entity({
-		ship: explorer,
-		faction: explorer.faction,
-		controllable: true,
-		x: 0,
-		y: 0
-	}));
-
+	let explorer = shipClasses["explorer"];
+	entities.push(
+		new Entity({
+			ship: explorer,
+			faction: explorer.faction,
+			controllable: true,
+			x: 0,
+			y: 0,
+		})
+	);
 }
 genShips();
 
@@ -956,35 +1014,39 @@ function spawnExplorers(amount: number = 1) {
 		ship: fleetShip,
 		faction: fleetShip.faction,
 		controllable: false,
-		rotation: 0
-	}
-	for(let i = 0; i < amount; i++) {
-		entities.push(new Entity({
-			...borgFleetSettings,
-			x: Math.random() * 5e3,
-			y: Math.random() * 5e3,
-		}));
+		rotation: 0,
+	};
+	for (let i = 0; i < amount; i++) {
+		entities.push(
+			new Entity({
+				...borgFleetSettings,
+				x: Math.random() * 5e3,
+				y: Math.random() * 5e3,
+			})
+		);
 	}
 	updateWaypoints();
 }
 
 function updateWaypoints(): void {
 	playerData.waypoints = [
-		...entities.map(ent => new Waypoint({ target: ent })),
+		...entities.map((ent) => new Waypoint({ target: ent })),
 	];
 
-	const allObjects = []
+	const allObjects = [];
 	function addPlanets(object: StellarObject) {
-		allObjects.push(object)
-		object.children.forEach(addPlanets)
+		allObjects.push(object);
+		object.children.forEach(addPlanets);
 	}
-	for(let object of objects) {
-		addPlanets(object)
+	for (let object of objects) {
+		addPlanets(object);
 	}
-	playerData.waypoints.push(...allObjects.map(ent => new Waypoint({ target: ent })))
+	playerData.waypoints.push(
+		...allObjects.map((ent) => new Waypoint({ target: ent }))
+	);
 }
 
-let player = entities.find(ship => ship.controllable === true);
+let player = entities.find((ship) => ship.controllable === true);
 
 class Waypoint {
 	public target: Entity | StellarObject;
@@ -1008,7 +1070,6 @@ class Waypoint {
 		let rot = Math.atan2(this.target.y - player.y, this.target.x - player.x);
 		ctx.rotate(rot);
 
-
 		let offsetX = this.distance / sensorSensitivity;
 		offsetX += playerData.minRadius;
 		if (offsetX > playerData.maxRadius) offsetX = playerData.maxRadius;
@@ -1016,12 +1077,16 @@ class Waypoint {
 		ctx.translate(offsetX, 0);
 		let cubeSize = 10;
 		ctx.rotate(-rot);
-		if(this.target.isShip && this.target.faction !== "Borg" && this.target.ship.className !== "Carrier class") {
+		if (
+			this.target.isShip &&
+			this.target.faction !== "Borg" &&
+			this.target.ship.className !== "Carrier class"
+		) {
 			ctx.beginPath();
-			
+
 			ctx.fillStyle = "green";
-			if(this.target.faction !== player.faction) ctx.fillStyle = "orange";
-			
+			if (this.target.faction !== player.faction) ctx.fillStyle = "orange";
+
 			if (this.target.controllable) {
 				ctx.fillStyle = "aqua";
 			}
@@ -1031,13 +1096,16 @@ class Waypoint {
 				}
 			}
 
-			ctx.fillRect(-cubeSize/4, -cubeSize/4, cubeSize/2, cubeSize/2);
+			ctx.fillRect(-cubeSize / 4, -cubeSize / 4, cubeSize / 2, cubeSize / 2);
 
 			// console.log(this.target);
 			// console.log(this.target.timesKilled)
-			if(this.target.timesKilled === 0 && this.target.calledForBackup && (this.target.backupPulses ?? 0) < 3) {
-
-				if(!this.target.backupCircleRadius) {
+			if (
+				this.target.timesKilled === 0 &&
+				this.target.calledForBackup &&
+				(this.target.backupPulses ?? 0) < 3
+			) {
+				if (!this.target.backupCircleRadius) {
 					this.target.backupPulses = 0;
 					this.target.backupCircleRadius = cubeSize;
 				}
@@ -1045,48 +1113,44 @@ class Waypoint {
 
 				ctx.beginPath();
 
-
 				ctx.arc(0, 0, this.target.backupCircleRadius, 0, Math.PI * 2);
 
 				let offsetThing = (this.target.backupCircleRadius - cubeSize) / 20;
 				let alpha = 1 - offsetThing;
-				if(alpha < -1) {
-					this.target.backupPulses++
+				if (alpha < -1) {
+					this.target.backupPulses++;
 					this.target.backupCircleRadius = cubeSize;
 				}
 
 				ctx.globalAlpha = Math.max(alpha, 0);
-				ctx.strokeStyle = this.target.faction === player.faction ? "green": "red";
+				ctx.strokeStyle =
+					this.target.faction === player.faction ? "green" : "red";
 				ctx.stroke();
 			}
-
-		} else if(this.target.isShip) {
-			
+		} else if (this.target.isShip) {
 			let size = cubeSize;
-			if(this.target.ship.className === "Carrier class") {
+			if (this.target.ship.className === "Carrier class") {
 				ctx.fillStyle = "white";
-				ctx.fillRect(-cubeSize/2, -cubeSize/2, cubeSize, cubeSize);
+				ctx.fillRect(-cubeSize / 2, -cubeSize / 2, cubeSize, cubeSize);
 				size = cubeSize * 0.6;
 			}
 
 			ctx.fillStyle = this.target.faction === player.faction ? "green" : "red";
-			if(this.target.health <= 0) ctx.fillStyle = "gray";
-			ctx.fillRect(-size/2, -size/2, size, size);
+			if (this.target.health <= 0) ctx.fillStyle = "gray";
+			ctx.fillRect(-size / 2, -size / 2, size, size);
 		} else {
 			ctx.globalAlpha = 0.3;
 			let size = 3;
 			ctx.fillStyle = this.target.faction === player.faction ? "white" : "aqua";
-			ctx.fillRect(-size/2, -size/2, size, size);
+			ctx.fillRect(-size / 2, -size / 2, size, size);
 		}
 
 		ctx.restore();
 		ctx.closePath();
 	}
-
 }
 
 class PlayerData {
-
 	public waypoints: Waypoint[];
 
 	public minRadius: number;
@@ -1101,46 +1165,46 @@ class PlayerData {
 	public drawGUI() {
 		ctx.save();
 
-		if([...document.querySelector('.gui').classList].includes('toggled')) {
+		if ([...document.querySelector(".gui").classList].includes("toggled")) {
 			ctx.translate(canvas.width / 2, canvas.height / 2);
 			ctx.beginPath();
-	
+
 			ctx.strokeStyle = "white";
-	
+
 			ctx.globalAlpha = 0.2;
-	
+
 			ctx.arc(0, 0, this.minRadius, 0, Math.PI * 2);
 			ctx.stroke();
 			ctx.beginPath();
 			ctx.arc(0, 0, this.maxRadius, 0, Math.PI * 2);
 			ctx.stroke();
-	
+
 			// Blue line
 			ctx.rotate(player.rotation);
 			ctx.beginPath();
-	
+
 			ctx.moveTo(playerData.minRadius, 0);
 			ctx.lineTo(playerData.maxRadius, 0);
-	
+
 			ctx.globalAlpha = 1;
 			ctx.strokeStyle = "aqua";
 			ctx.stroke();
-	
+
 			ctx.restore();
 
-			for(let waypoint of playerData.waypoints) {
-				if(waypoint.target !== player) waypoint.draw();
+			for (let waypoint of playerData.waypoints) {
+				if (waypoint.target !== player) waypoint.draw();
 			}
 		}
 
 		this.drawBars();
-
 	}
 
-	private drawBars() { // Draw entity bars
+	private drawBars() {
+		// Draw entity bars
 		for (let entity of entities) {
 			ctx.save();
-			ctx.translate(canvas.width / 2, canvas.height / 2)
+			ctx.translate(canvas.width / 2, canvas.height / 2);
 			ctx.translate(entity.x - player.x, entity.y - player.y);
 			ctx.translate(0, radarMin + 10);
 
@@ -1148,34 +1212,49 @@ class PlayerData {
 			ctx.fillStyle = "gray";
 			ctx.fillRect(-barWidth / 2, 0, barWidth, 10);
 			ctx.fillStyle = "green";
-			ctx.fillRect(-barWidth / 2, 0, (entity.health / entity.ship.startHealth) * barWidth, 10);
+			ctx.fillRect(
+				-barWidth / 2,
+				0,
+				(entity.health / entity.ship.startHealth) * barWidth,
+				10
+			);
 
 			// Speed
 			ctx.translate(0, 15);
 			ctx.fillStyle = "gray";
 			ctx.fillRect(-barWidth / 2, 0, barWidth, 10);
 			ctx.fillStyle = "aqua";
-			ctx.fillRect(-barWidth / 2, 0, (entity.speed / entity.ship.maxSpeed) * barWidth, 10);
+			ctx.fillRect(
+				-barWidth / 2,
+				0,
+				(entity.speed / entity.ship.maxSpeed) * barWidth,
+				10
+			);
 
 			// Weapons
-			for(let weapon of entity.weapons) {
+			for (let weapon of entity.weapons) {
 				ctx.translate(0, 15);
 				ctx.fillStyle = "gray";
 				ctx.fillRect(-barWidth / 2, 0, barWidth, 10);
 				ctx.fillStyle = weapon.disabled ? "red" : "orange";
-				ctx.fillRect(-barWidth / 2, 0, (weapon.disabled ? weapon.weaponCooldown / weapon.weaponCooldownTime : weapon.usage / weapon.maxUsage) * barWidth, 10);
+				ctx.fillRect(
+					-barWidth / 2,
+					0,
+					(weapon.disabled
+						? weapon.weaponCooldown / weapon.weaponCooldownTime
+						: weapon.usage / weapon.maxUsage) * barWidth,
+					10
+				);
 			}
 
 			ctx.restore();
 		}
-
 	}
-
-
-
 }
 
 function toClosestFriendly(ship) {
-	let ships = (findShips(ship.faction) || []).filter(s => s.following !== ship || s.health < 20);
-	if(ships[0]) ship.moveTo(ships[0]);
+	let ships = (findShips(ship.faction) || []).filter(
+		(s) => s.following !== ship || s.health < 20
+	);
+	if (ships[0]) ship.moveTo(ships[0]);
 }
